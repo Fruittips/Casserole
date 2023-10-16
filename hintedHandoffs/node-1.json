@@ -1,0 +1,12 @@
+{
+    "table_name": "hinted handoffs",
+    "columns":["course_name", "num_of_slots"],
+    "row": [
+        {
+            "id": 0,
+            "data": ["DSC", 63],
+            "timestamp": 123123123,
+            "parent": 1010
+        }
+    ]
+}

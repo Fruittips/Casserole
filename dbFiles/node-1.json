@@ -1,0 +1,18 @@
+{
+    "table_name": "courses",
+    "columns":["course_name", "num_of_slots"],
+    "row": [
+        {
+            "id": 0,
+            "data": ["DSC", 63],
+            "timestamp": 123123123,
+            "comments": "TODO: delete mock data"
+        },
+        {
+            "id": 0,
+            "data": ["Algo", 60],
+            "timestamp": 123123643,
+            "comments": "TODO: delete mock data"
+        }
+    ]
+}
