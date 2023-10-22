@@ -1,0 +1,16 @@
+{
+	"TableName": "hinted handoffs",
+	"Columns": [
+		"course_name",
+		"num_of_slots"
+	],
+	"Row": {
+		"346": {
+			"Data": [
+				"Mathematics",
+				"900"
+			],
+			"Timestamp": 1697954570
+		}
+	}
+}
