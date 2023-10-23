@@ -3,6 +3,7 @@ module casserole
 go 1.21.3
 
 require (
+  github.com/spaolacci/murmur3 v1.1.0
 	github.com/andybalholm/brotli v1.0.6 // indirect
 	github.com/gofiber/fiber/v2 v2.50.0 // indirect
 	github.com/google/uuid v1.3.1 // indirect
@@ -16,3 +17,5 @@ require (
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/sys v0.13.0 // indirect
 )
+
+replace cht => ./utils/cht
