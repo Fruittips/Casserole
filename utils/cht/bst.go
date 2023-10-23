@@ -31,6 +31,27 @@ func (tree *bst) Search(key HashId) NodeId {
 	}
 }
 
+// Returns the NodeId of the node that has the **closest** HashId that is smaller
+// than the given HashId.
+// If no node has a smaller HashId, returns the node with the largest HashId
+// since this is organised in a ring structure
+// If there are no nodes in the hash table, returns an empty NodeId
+func (tree *bst) ClosestSmallerNode(key HashId) NodeId {
+	closestNode := tree.closestSmallerNodeRec(tree.root, key)
+	if closestNode == nil {
+		// Either tree root is nil, or we found no nodes smaller than key
+		if tree.root == nil {
+			return ""
+		}
+		// Get maximum
+		closestNode = tree.root
+		for closestNode.right != nil {
+			closestNode = closestNode.right
+		}
+	}
+	return closestNode.value
+}
+
 // Insert key into tree
 func (tree *bst) Insert(key HashId, value NodeId) {
 	curNode := tree.root
@@ -82,6 +103,35 @@ func (tree *bst) searchRec(node *bstNode, key HashId) *bstNode {
 		return tree.searchRec(node.left, key)
 	} else {
 		return tree.searchRec(node.right, key)
+	}
+}
+
+func (tree *bst) closestSmallerNodeRec(node *bstNode, key HashId) *bstNode {
+	// CASES:
+	// key > curNode.key: Closest node is in the right subtree, or is curNode
+	// - Return max(curNode, closestSmallerNodeRec(curNode.right))
+	// - if no right subtree, return curNode
+	// key < curNode.key: Closest node is in the left subtree, or is max node
+	// - Return closestSmallerNodeRec(curNode.left)
+	// - if no left subtree, return nil
+	// key == curNode.key: This IS the closest node
+
+	if node == nil {
+		return nil
+	}
+
+	if key > node.key {
+		closestRightChild := tree.closestSmallerNodeRec(node.right, key)
+		if closestRightChild == nil {
+			// Either node.right is nil, or there's no larger child smaller than key
+			return node
+		} else {
+			return closestRightChild
+		}
+	} else if key < node.key {
+		return tree.closestSmallerNodeRec(node.left, key)
+	} else {
+		return node
 	}
 }
 

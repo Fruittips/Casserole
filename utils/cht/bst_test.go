@@ -208,3 +208,66 @@ func TestDeletes(t *testing.T) {
 		t.Fatalf("tree.Delete(3) failed.")
 	}
 }
+
+func TestClosestSmallerNode(t *testing.T) {
+	tree := newBST()
+	testInts := []int{0, 2, 4, 6, 8, 10, 12}
+
+	// Insert Nodes
+	for _, testInt := range(testInts) {
+		tree.Insert(HashId(testInt), NodeId(fmt.Sprintf("value%d", testInt)))
+	}
+	if !assertHashIdsMatches(tree.hashIds(), testInts) {
+		t.Log(tree.hashIds())
+		t.Fatalf("Inserts failed.")
+	}
+
+	// Test Equal Data Keys
+	for _, testInt := range(testInts) {
+		key := HashId(testInt)
+		closestNodeId := tree.ClosestSmallerNode(key)
+		expectedNodeId := NodeId(fmt.Sprintf("value%d", testInt))
+		if closestNodeId != expectedNodeId {
+			t.Fatalf("Closest NodeId for HashId %v was: %v; expected: %v", key, closestNodeId, expectedNodeId)
+		}
+	}
+
+	// Test Nonequal Data Keys
+	keys             := []HashId{1, 3, 5, 7, 9, 11, 13, 15, 17}
+	expectedNodeHashIds := []int{0, 2, 4, 6, 8, 10, 12, 12, 12}
+	expectedNodeIds := make([]NodeId, 0)
+	for _, nodeHashId := range(expectedNodeHashIds) {
+		expectedNodeIds = append(expectedNodeIds, NodeId(fmt.Sprintf("value%d", nodeHashId)))
+	}
+
+	for i, key := range(keys) {
+		closestNodeId := tree.ClosestSmallerNode(key)
+		expectedNodeId := expectedNodeIds[i]
+		if closestNodeId != expectedNodeId {
+			t.Fatalf("Closest NodeId for HashId %v was: %v; expected: %v", key, closestNodeId, expectedNodeId)
+		}
+	}
+
+	// Test if data keys lower than minimum node HashId get assigned circularly
+	tree = newBST()
+	nodeHashIds := []HashId{5, 10, 15, 20, 25, 30, 50}
+	for _, hashId := range(nodeHashIds) {
+		tree.Insert(hashId, NodeId(fmt.Sprintf("value%d", hashId)))
+	}
+
+	keys              = []HashId{1, 2, 5, 6, 9, 10, 22, 24, 33, 39, 60}
+	expectedNodeHashIds = []int{50,50, 5, 5, 5, 10, 20, 20, 30, 30, 50}
+	expectedNodeIds = make([]NodeId, 0)
+	for _, nodeHashId := range(expectedNodeHashIds) {
+		expectedNodeIds = append(expectedNodeIds, NodeId(fmt.Sprintf("value%d", nodeHashId)))
+	}
+
+	for i, key := range(keys) {
+		closestNodeId := tree.ClosestSmallerNode(key)
+		expectedNodeId := expectedNodeIds[i]
+		if closestNodeId != expectedNodeId {
+			t.Fatalf("Closest NodeId for HashId %v was: %v; expected: %v", key, closestNodeId, expectedNodeId)
+		}
+	}
+	
+}
