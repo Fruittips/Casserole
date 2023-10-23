@@ -1,0 +1,43 @@
+{
+    "consistencyLevel": "QUORUM",
+    "gracePeriod": 100,
+    "timeout": 10,
+    "rf": 3,
+    "ring": [
+        {
+            "id": 0,
+            "port": 3000,
+            "isDead": false
+        },
+        {
+            "id": 1,
+            "port": 3001,
+            "isDead": false
+        },
+        {
+            "id": 2,
+            "port": 3002,
+            "isDead": false
+        },
+        {
+            "id": 3,
+            "port": 3003,
+            "isDead": false
+        },
+        {
+            "id": 4,
+            "port": 3004,
+            "isDead": false
+        },
+        {
+            "id": 5,
+            "port": 3005,
+            "isDead": false
+        },
+        {
+            "id": 6,
+            "port": 3006,
+            "isDead": false
+        }
+    ]
+}
