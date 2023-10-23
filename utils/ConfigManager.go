@@ -62,7 +62,7 @@ func (configManager *ConfigManager) findNodeByPort(port int) (int, *Node) {
 	panic(fmt.Errorf("could not find node with port %d", port))
 }
 
-func (configManager *ConfigManager) findNodeById(id int) *Node {
+func (configManager *ConfigManager) FindNodeById(id int) *Node {
 	node, exists := configManager.Data.Ring[id]
 	if !exists {
 		panic(fmt.Errorf("could not find node with id %d", id))

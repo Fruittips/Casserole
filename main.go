@@ -26,7 +26,9 @@ func main() {
 		return ctx.SendString("Hello, World 👋!")
 	})
 
-	app.Get("/write", baseHandler.WriteHandler)
+	app.Get("/write/:courseId", baseHandler.WriteHandler)
+
+	app.Get("/read/:courseId", baseHandler.ReadHandler)
 
 	app.Listen(fmt.Sprintf(":%d", *port))
 }

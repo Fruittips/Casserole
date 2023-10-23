@@ -23,10 +23,10 @@ type Response struct {
 
 type Request struct {
 	NodeId int
-	url    string
+	Url    string
 }
 
-func (nm *NodeManager) forwardGetRequests(requests []Request) []Response {
+func (nm *NodeManager) ForwardGetRequests(requests []Request) []Response {
 	var wg sync.WaitGroup
 	respC := make(chan Response, len(requests))
 
@@ -54,7 +54,7 @@ func (nm *NodeManager) nonBlockingGet(req Request, wg *sync.WaitGroup, ch *chan 
 		Timeout: timeout * time.Second,
 	}
 
-	resp, err := client.Get(req.url)
+	resp, err := client.Get(req.Url)
 	if err != nil {
 		*ch <- Response{NodeId: req.NodeId, Error: err}
 		return

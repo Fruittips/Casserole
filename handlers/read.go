@@ -7,7 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
+func (h *BaseHandler) ReadHandler(c *fiber.Ctx) error {
 	courseId := c.Params("courseId")
 
 	/* get list of node ids to forward request to from CH */
@@ -35,7 +35,7 @@ func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
 
 		reqsToForward = append(reqsToForward, utils.Request{
 			NodeId: nodeId,
-			Url:    fmt.Sprintf("http://localhost:%d/write/%d", nodes[i].Port, courseId)})
+			Url:    fmt.Sprintf("http://localhost:%d/read/%d", nodes[i].Port, courseId)})
 	}
 
 	responses := h.NodeManager.ForwardGetRequests(reqsToForward)
@@ -48,24 +48,13 @@ func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
 		noOfAck++
 	}
 
-	// if failed to hit QUORUM
-	if noOfAck < h.NodeManager.Quorum {
-		/* TODO: write to hinted handoff */
-		//return with error response 500
+	//TODO: run read repair here
+
+	if noOfAck >= h.NodeManager.Quorum {
+		//return successful response with latest data
 	}
 
-	/* if hit quorum
-	1. all nodes respond
-	2. some nodes respond
-	*/
-
-	//if all nodes respond
-	if noOfAck == len(ids) {
-		//return successful response with data
-	}
-
-	//some nodes respond
-	//hinted handoff and successful response
+	//return failed response status 500
 
 	return nil
 }
