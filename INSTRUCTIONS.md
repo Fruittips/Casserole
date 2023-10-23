@@ -7,6 +7,7 @@ Every request needs to be able to use the NodeManager, we do this via dependency
 The dependency, NodeManager, is injected into the handler via the BaseHandler struct.
 Therefore, every request handler needs to be a method of the BaseHandler struct.
 ```go
+// in handler folder, define ur handler
 package handlers
 
 import "github.com/gofiber/fiber/v2"
@@ -19,6 +20,11 @@ func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
 }
 ```
 ```go
+// in main.go define ur routing and handler
+app.Get("/write", baseHandler.WriteHandler)
+```
+```go
+// this is the base handler used for dependency injection
 package handlers
 
 import "casserole/utils"
