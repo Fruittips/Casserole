@@ -1,0 +1,16 @@
+{
+    "consistencyLevel": "QUORUM",
+    "gracePeriod": 100,
+    "timeout": 10,
+    "rf": 3,
+    "ring": {
+        "0": {
+            "port": 3000,
+            "isDead": false
+        },
+        "1": {
+            "port": 3001,
+            "isDead": false
+        }
+    }   
+}

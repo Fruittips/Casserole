@@ -1,4 +1,4 @@
-package hintedHandoffLockStore
+package utils
 
 // still empty
 
@@ -16,11 +16,11 @@ import (
 	"time"
 )
 
-type AtomicDbMessage struct {
-	// Id        int       `json: "id"` // parent node
-	Data      []string `json: "Data"`
-	Timestamp int64    `json: "Timestamp"`
-}
+// type AtomicDbMessage struct {
+// 	// Id        int       `json: "id"` // parent node
+// 	Data      []string `json: "Data"`
+// 	Timestamp int64    `json: "Timestamp"`
+// }
 
 type Handoff struct {
 	TableName string                     `json: "TableName"`
