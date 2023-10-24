@@ -66,12 +66,36 @@ func (table *CHashTable) RemoveNode(nodeId NodeId) {
 	table.rwlock.Unlock()
 }
 
-// Returns the ID of the node responsible for this key.
+// Returns the ID of the main node responsible for this key.
 func (table *CHashTable) GetNode(key string) NodeId {
 	table.rwlock.RLock()
 	defer table.rwlock.RUnlock()
 	dataId := getHashId(key, table.seed)
 	return table.nodes.ClosestSmallerNode(dataId)
+}
+
+// Returns the IDs of the nodes responsible for this key. Note that `replicaCount` includes the authority node itself.
+func (table *CHashTable) GetNodes(key string, replicaCount int) []NodeId {
+	if replicaCount == 0 {
+		return make([]NodeId, 0)
+	}
+	table.rwlock.RLock()
+	defer table.rwlock.RUnlock()
+
+	// Get the main node responsible
+	dataId := getHashId(key, table.seed)
+	nodeId := table.nodes.ClosestSmallerNode(dataId)
+	if nodeId == "" {
+		return make([]NodeId, 0)
+	}
+
+	nodes := []NodeId{nodeId}
+
+	// Get the other nodes
+	nodeHashId := getHashId(string(nodeId), table.seed)
+	nodes = append(nodes, table.nodes.GetSuccessors(nodeHashId, replicaCount-1)...)
+	
+	return nodes
 }
 
 
