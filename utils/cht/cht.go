@@ -3,7 +3,8 @@
   - `cht.NewCHashTable(nodeList []cht.NodeId) *CHashTable`: Creates a new hash table, given a list of cht.NodeId node identifiers (IP addresses, ports, etc). NodeId is an alias for a string.
   - `cht.AddNode(nodeId cht.NodeId)`: Adds a new node to the table.
   - `cht.RemoveNode(nodeId cht.NodeId)`: Deletes a node from the table.
-  - `cht.GetNode(key string) NodeId`: Returns the node identifier for the node responsible for the given key.
+  - `cht.GetNode(key string) cht.NodeId`: Returns the node identifier for the node responsible for the given key.
+  - `cht.GetNodes(key string, replicaCount int) []cht.NodeId: Returns the node identifiers of the nodes responsible for the given key.
 */
 
 package cht

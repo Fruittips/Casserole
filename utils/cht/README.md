@@ -16,6 +16,10 @@ Creates a new hash table.
 ### `table.GetNode(key string) cht.NodeId`
 Returns the `cht.NodeId` node identifier for a given `key` string.
 
+### `table.GetNodes(key string, replicaCount int) []cht.NodeId`
+Returns `replicaCount` node identifiers responsible for a given `key` string.
+- This includes the main node *and* (`replicaCount - 1`) successors of that node.
+
 ### `table.AddNode(nodeId cht.NodeId) error`
 Adds a node ID to the table. Returns an error if the given `nodeId` is already in the table.
 
@@ -44,6 +48,9 @@ func main() {
 	
 	// Identify which node is responsible for this data tuple
 	nodeId := table.GetNode(key)
+	
+	// Identify which nodes are responsible for this data tuple
+	nodeIds := table.GetNodes(key, 2) // This returns TWO node IDs -- main node and 1 replica node
 }
 ```
 - Note that the actual node ID returned could vary, based on the `defaultSeed` value set in `cht.go`.
