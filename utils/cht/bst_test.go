@@ -18,6 +18,19 @@ func assertHashIdsMatches(hashIds []HashId, ints []int) bool {
 	return true
 }
 
+func assertNodeIdsMatches(nodeIds []NodeId, ints []int) bool {
+	if len(nodeIds) != len(ints) {
+		return false
+	}
+
+	for i := range(nodeIds) {
+		if string(nodeIds[i]) != fmt.Sprintf("value%d", ints[i]) {
+			return false
+		}
+	}
+	return true
+}
+
 func TestSearchAndInsert(t *testing.T) {
 	tree := newBST()
 	testInts := []int{0, 1, 2, 3, 4, 5}
@@ -269,43 +282,43 @@ func TestGetSuccessors(t *testing.T) {
 
 	// Test Successors
 	succof0_count0 := tree.GetSuccessors(HashId(0), 0)
-	if !assertHashIdsMatches(succof0_count0, make([]int, 0)) {
+	if !assertNodeIdsMatches(succof0_count0, make([]int, 0)) {
 		t.Log(tree.HashIds())
 		t.Fatalf("tree.GetSuccessors(HashId(0), 0) returned %v", succof0_count0)
 	}
 
 	succof0_count1 := tree.GetSuccessors(HashId(0), 1)
-	if !assertHashIdsMatches(succof0_count1, []int{2}) {
+	if !assertNodeIdsMatches(succof0_count1, []int{2}) {
 		t.Log(tree.HashIds())
 		t.Fatalf("tree.GetSuccessors(HashId(0), 1) returned %v", succof0_count1)
 	}
 
 	succof0_count5 := tree.GetSuccessors(HashId(0), 5)
-	if !assertHashIdsMatches(succof0_count5, []int{2,4,6,8,10}) {
+	if !assertNodeIdsMatches(succof0_count5, []int{2,4,6,8,10}) {
 		t.Log(tree.HashIds())
 		t.Fatalf("tree.GetSuccessors(HashId(0), 5) returned %v", succof0_count5)
 	}
 
 	succof0_count6 := tree.GetSuccessors(HashId(0), 6)
-	if !assertHashIdsMatches(succof0_count6, []int{2,4,6,8,10,12}) {
+	if !assertNodeIdsMatches(succof0_count6, []int{2,4,6,8,10,12}) {
 		t.Log(tree.HashIds())
 		t.Fatalf("tree.GetSuccessors(HashId(0), 6) returned %v", succof0_count6)
 	}
 
 	succof0_count7 := tree.GetSuccessors(HashId(0), 7)
-	if !assertHashIdsMatches(succof0_count7, []int{2,4,6,8,10,12}) {
+	if !assertNodeIdsMatches(succof0_count7, []int{2,4,6,8,10,12}) {
 		t.Log(tree.HashIds())
 		t.Fatalf("tree.GetSuccessors(HashId(0), 7) returned %v", succof0_count7)
 	}
 
 	// Test Wraparound
 	succof10_count2 := tree.GetSuccessors(HashId(10), 2)
-	if !assertHashIdsMatches(succof10_count2, []int{12, 0}) {
+	if !assertNodeIdsMatches(succof10_count2, []int{12, 0}) {
 		t.Log(tree.HashIds())
 		t.Fatalf("tree.GetSuccessors(HashId(10), 2) returned %v", succof10_count2)
 	}
 	succof6_count10 := tree.GetSuccessors(HashId(6), 10)
-	if !assertHashIdsMatches(succof6_count10, []int{8, 10, 12, 0, 2, 4}) {
+	if !assertNodeIdsMatches(succof6_count10, []int{8, 10, 12, 0, 2, 4}) {
 		t.Log(tree.HashIds())
 		t.Fatalf("tree.GetSuccessors(HashId(6), 10) returned %v", succof6_count10)
 	}

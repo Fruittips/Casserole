@@ -55,8 +55,8 @@ func (tree *bst) ClosestSmallerNode(key HashId) NodeId {
 // If successorCount exceeds len(tree)-2, returns all available successors.
 // If HashId of node doesn't exist, panics
 // Note that this search wraparounds: The successor of the rightmost node in the tree is the leftmost.
-func (tree *bst) GetSuccessors(key HashId, successorCount int) []HashId {
-	successors := make([]HashId, 0)
+func (tree *bst) GetSuccessors(key HashId, successorCount int) []NodeId {
+	successors := make([]NodeId, 0)
 
 	if successorCount == 0 {
 		return successors
@@ -82,7 +82,7 @@ func (tree *bst) GetSuccessors(key HashId, successorCount int) []HashId {
 			successor = tree.treeMin(tree.root)
 		}
 		
-		successors = append(successors, successor.key)
+		successors = append(successors, successor.value)
 		node = successor
 	}
 	return successors
