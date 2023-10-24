@@ -52,6 +52,27 @@ func (tree *bst) ClosestSmallerNode(key HashId) NodeId {
 	return closestNode.value
 }
 
+// Given a HashId of a node, return a list of HashIds of the successors of that node.
+// If successorCount exceeds len(tree)-2, returns all available successors.
+func (tree *bst) GetSuccessors(key HashId, successorCount int) []HashId {
+	successors := make([]HashId, 0)
+
+	if successorCount == 0 {
+		return successors
+	}
+
+	if successorCount > tree.Len() - 2 {
+		// Return all available successors
+		successorCount = tree.Len() - 2
+	}
+	return successors
+}
+
+// Returns the successor of a given node
+func (tree *bst) successor(node *bstNode) *bstNode {
+	return node
+}
+
 // Insert key into tree
 func (tree *bst) Insert(key HashId, value NodeId) {
 	curNode := tree.root
@@ -91,6 +112,16 @@ func (tree *bst) Insert(key HashId, value NodeId) {
 func (tree *bst) Delete(key HashId) {
 	node := tree.searchRec(tree.root, key)
 	tree.deleteNode(node)
+}
+
+// Returns a slice of all HashIds in the tree.
+func (tree *bst) HashIds() []HashId {
+	return tree.hashIdsRec(tree.root)
+}
+
+// Returns the number of nodes in the tree
+func (tree *bst) Len() int {
+	return len(tree.HashIds())
 }
 
 // Recursively searches tree for key. Returns either the bstNode or nil.
@@ -196,4 +227,20 @@ func (tree *bst) transplant(u, v *bstNode) {
 		// Update v to recognise parent of u
 		v.parent = u.parent
 	}
+}
+
+func (tree *bst) hashIdsRec(node *bstNode) []HashId {
+	ls := make([]HashId, 0)
+	if node == nil {
+		return ls
+	}
+	if node.left != nil {
+		ls = append(ls, tree.hashIdsRec(node.left)...)
+	}
+	
+	ls = append(ls, node.key)
+	if node.right != nil {
+		ls = append(ls, tree.hashIdsRec(node.right)...)
+	}
+	return ls
 }
