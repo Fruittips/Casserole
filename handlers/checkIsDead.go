@@ -6,6 +6,7 @@ import (
 )
 
 func checkIsDead() (bool, error) {
+	// TODO: Remove, shift to NodeManager -- also, how does this know the ID of the node to check?
 	// check if config.json is_dead is false
 	filename := "config.json"
 

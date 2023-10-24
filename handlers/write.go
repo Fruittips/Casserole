@@ -3,6 +3,7 @@ package handlers
 import (
 	"casserole/utils"
 	"fmt"
+	"log"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -14,12 +15,16 @@ func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
 
 	/* get list of node ids to forward request to from CH */
 	nodes := h.NodeManager.GetNodesForKey(courseId)
+	// for logging
+	for _, node := range(nodes) {
+		log.Printf("Writing %v to N%d", courseId, node.Id)
+	}
 
 	noOfAck := 0
 	reqsToForward := []utils.Request{}
 
 	for _, node := range(nodes) {
-		if node.Id == h.NodeManager.Id {
+		if node.Id == h.NodeManager.LocalId {
 			// TODO: Write from self
 			noOfAck++
 			continue
@@ -28,7 +33,7 @@ func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
 		reqsToForward = append(
 			reqsToForward,
 			utils.Request{
-				NodeId: node.Id,
+				NodeId: int(node.Id),
 				Url: fmt.Sprintf(BASE_WRITE_URL, node.Port, courseId),
 			},
 		)
@@ -63,5 +68,5 @@ func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
 	//some nodes respond
 	//hinted handoff and successful response
 
-	return nil
+	return c.SendStatus(500)
 }

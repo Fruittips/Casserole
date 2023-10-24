@@ -4,92 +4,95 @@ import (
 	"casserole/utils/cht"
 	"errors"
 	"fmt"
+	"log"
 	"path/filepath"
 	"strconv"
 )
 
-// A local record of a node
+const CONFIG_PATH = "./config.json"
+
+type NodeId int
+
 type Node struct {
-	Id int
-	Port   int
-	IsDead bool
+	Id NodeId
+	Port int
+	isDead bool
+}
+
+func (n Node) IsDead() bool {
+	// TODO: replace with proper way -- why can't we get rid of deadnode and just use ctrl-c?
+	return n.isDead
 }
 
 func (n Node) String() string {
-	deadStatus := "Alive"
-	if n.IsDead {
-		deadStatus = "Dead"
+	fmtStr := fmt.Sprintf("N%v: Port %d, Status: ", n.Id, n.Port)
+	if n.IsDead() {
+		return fmtStr + "DEAD"
 	}
-	return fmt.Sprintf("Port: %d, Status: %s", n.Port, deadStatus)
+	return fmtStr + "LIVE"
 }
 
-// Manager for the local node.
-// This keeps track of the status of all other nodes, manages the database and hinted handoffs.
+// Manager for local node: Keeps track of status of other nodes
 type NodeManager struct {
-	Id int
+	LocalId NodeId
 	Quorum int
-	Ring map[int]Node
-	ConfigManager *ConfigManager // Default configuration
-	DatabaseManager *DatabaseManager
-	HintedHandoffManager *HintedHandoffManager
-	cht cht.CHashTable
+	Nodes map[NodeId]Node
+	cht *cht.CHashTable
+	sysConfig *sysConfig
 }
 
-// Initialises the node, loading all local data 'owned' by this node
 func NewNodeManager(port int) *NodeManager {
-	relativePath := "./config.json"
-	absolutePath, err := filepath.Abs(relativePath)
+	configPath, err := filepath.Abs(CONFIG_PATH)
 	if err != nil {
-		panic(err)
+		log.Fatalf("Error initialising NodeManager: %v", err)
 	}
 
-	// Identify the ID of this port, based on the configuration
-	configManager := newConfigManager(absolutePath)
+	// Identify ID of this node, generate nodeList for cht, and generate node map
+	sysConfig, err := loadConfig(configPath)
+	if err != nil {
+		log.Fatalf("Error loading config: %v", err)
+	}
 	myId := -1
-
-	// Identify ID and generate nodeList for cht
-	nodeList := make([]cht.NodeId, 0)
-	for id, node := range configManager.defaultNodes {
-		nodeIdentifier := cht.NodeId(fmt.Sprintf("%d", node.Port))
-		nodeList = append(nodeList, nodeIdentifier)
-		if node.Port == port {
+	nodeLs := make([]cht.NodeId, 0)
+	nodeMap := make(map[NodeId]Node, 0)
+	for id, nodeData := range(sysConfig.Nodes) {
+		identifier := cht.NodeId(fmt.Sprintf("%d", nodeData.Port))
+		nodeLs = append(nodeLs, identifier)
+		nodeMap[NodeId(id)] = Node{
+			Id: NodeId(id),
+			Port: nodeData.Port,
+			isDead: nodeData.IsDead,
+		}
+		
+		if nodeData.Port == port {
+			if myId != -1 {
+				log.Fatalf("IDs %v, %v have the same port %d", id, myId, port)
+			}
 			myId = id
 		}
 	}
+
 	if myId == -1 {
-		panic(fmt.Sprintf("Could not find port %d in config", port))
+		log.Fatalf("Could not find port %d in config.", port)
 	}
-	
-
-	databaseFilepath := fmt.Sprintf("./dbFiles/node-%d.json", myId)
-	absolutePathDb, err := filepath.Abs(databaseFilepath)
-	if err != nil {
-		panic(err)
-	}
-
-	hintedHandoffFilepath := fmt.Sprintf("./hintedHandoffs/node-%d.json", myId)
-	absolutePathHh, err := filepath.Abs(hintedHandoffFilepath)
-	if err != nil {
-		panic(err)
-	}
-
-	databaseManager := newDatabaseManager(absolutePathDb)
-	hintedHandoffManager := newHintedHandoffManager(absolutePathHh)
 
 	return &NodeManager{
-		Id:                   myId,
-		Quorum:               configManager.RF/2 + 1,
-		Ring: configManager.defaultNodes,
-		ConfigManager:        configManager,
-		DatabaseManager:      databaseManager,
-		HintedHandoffManager: hintedHandoffManager,
-		cht: *cht.NewCHashTable(nodeList),
+		LocalId: NodeId(myId),
+		Quorum: sysConfig.RF/2 + 1,
+		Nodes: nodeMap,
+		cht: cht.NewCHashTable(nodeLs),
+		sysConfig: sysConfig,
 	}
 }
 
-// Returns the node associated with port
-func (nMgr *NodeManager) GetNodeByPort(port int) (*Node, error) {
-	for _, node := range(nMgr.Ring) {
+// Returns a read-only reference of the configuration of this node manager
+func (nm *NodeManager) GetConfig() sysConfig {
+	return *nm.sysConfig
+}
+
+// Returns the node associated with this port
+func (nm *NodeManager) GetNodeByPort(port int) (*Node, error) {
+	for _, node := range(nm.Nodes) {
 		if node.Port == port {
 			return &node, nil
 		}
@@ -97,52 +100,43 @@ func (nMgr *NodeManager) GetNodeByPort(port int) (*Node, error) {
 	return nil, errors.New(fmt.Sprintf("No node with port %d", port))
 }
 
-// Returns the node associated with this ID in the configuration
-func (nMgr *NodeManager) GetNodeById(id int) (*Node, error) {
-	node, exists := nMgr.Ring[id]
+// Returns the node associated with this id
+func (nm *NodeManager) GetNodeById(id NodeId) (*Node, error) {
+	node, exists := nm.Nodes[id]
 	if !exists {
 		return nil, errors.New(fmt.Sprintf("No node with ID %d", id))
 	}
 	return &node, nil
 }
 
-// Returns the nodes responsible for this key. This uses the replication factor in the configuration
-func (nMgr *NodeManager) GetNodesForKey(key string) [](*Node) {
-	nodeIdentifiers := nMgr.cht.GetNodes(key, nMgr.ConfigManager.RF)
-	nodes := make([](*Node), 0)
-	for _, identifier := range(nodeIdentifiers) {
-		port, err := strconv.Atoi(string(identifier))
-		if err != nil {
-			panic(fmt.Sprintf("Error converting %v to int: %v", identifier, err))
-		}
-		node, err:= nMgr.GetNodeByPort(port)
-		if err != nil {
-			panic(fmt.Sprintf("Error getting nodes by port %d: %v", port, node))
-		}
-		nodes = append(nodes, node)
-	}
-	return nodes
-}
+// Returns the node ports responsible for this key. Uses the system's config for RF.
+func (nm *NodeManager) GetNodePortsForKey(key string) []int {
+	portStrs := nm.cht.GetNodes(key, nm.sysConfig.RF)
 
-// Returns the node identifiers of the nodes responsible for this key. This uses the RF in the config
-func (nMgr *NodeManager) GetNodePortsForKey(key string) [](int) {
-	nodeIdentifiers := nMgr.cht.GetNodes(key, nMgr.ConfigManager.RF)
+	// Convert into ints
 	ports := make([]int, 0)
-	for _, identifier := range(nodeIdentifiers) {
-		port, err := strconv.Atoi(string(identifier))
+	for _, portStr := range(portStrs) {
+		port, err := strconv.Atoi(string(portStr))
 		if err != nil {
-			panic(fmt.Sprintf("Error converting %v to int: %v", identifier, err))
+			panic(fmt.Sprintf("Error converting %v to int: %v", portStr, err))
 		}
 		ports = append(ports, port)
 	}
 	return ports
 }
 
-func (nm *NodeManager) Me() Node {
-	me, err := nm.GetNodeById(nm.Id)
-	if err != nil {
-		panic(err)
+// Returns the nodes responsible for this key. Uses the system's config for RF.
+func (nm *NodeManager) GetNodesForKey(key string) [](*Node) {
+	ports := nm.GetNodePortsForKey(key)
+	nodes := make([](*Node), 0)
+	for _, port := range(ports) {
+		node, err := nm.GetNodeByPort(port)
+		if err != nil {
+			panic(fmt.Sprintf("Error getting port of node ID %d: %v", node.Id, err))
+		}
+		nodes = append(nodes, node)
 	}
-	return *me
+	return nodes
 }
+
 
