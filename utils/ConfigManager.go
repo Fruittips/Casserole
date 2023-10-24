@@ -13,11 +13,11 @@ import (
 // Manages the configuration, based on the given config filepath.
 type ConfigManager struct {
 	filepath         string
-	defaultNodes map[int]Node
+	defaultNodes     map[int]Node
 	ConsistencyLevel string // e.g. "QUORUM"
 	GracePeriod      time.Duration
 	Timeout          time.Duration
-	RF               int          // replication factor
+	RF               int // replication factor
 }
 
 // Load configuration from a given path.
@@ -39,10 +39,10 @@ func newConfigManager(path string) *ConfigManager {
 
 	// Convert hardcoded node data into Nodes
 	nodeMap := make(map[int]Node, 0)
-	for id, configNode := range(data.Ring) {
+	for id, configNode := range data.Ring {
 		nodeMap[id] = Node{
-			Id: id,
-			Port: configNode.Port,
+			Id:     id,
+			Port:   configNode.Port,
 			IsDead: configNode.IsDead,
 		}
 	}
@@ -57,32 +57,32 @@ func newConfigManager(path string) *ConfigManager {
 	}
 }
 
-type config struct {
-	ConsistencyLevel string        `json:"consistencyLevel"` //e.g. "QUORUM"
-	GracePeriod      time.Duration `json:"gracePeriod" `     //duration in seconds
-	Timeout          time.Duration `json:"timeout"`          //duration in seconds
-	RF               int           `json:"rf"`               //replication factor
-	Ring             map[int]configNode  `json:"ring"`             //all nodes in ring
-}
-
-func (c config) String() string {
+func (cMgr *ConfigManager) String() string {
 	builder := &strings.Builder{}
 
-	fmt.Fprintf(builder, "ConsistencyLevel: %s\n", c.ConsistencyLevel)
-	fmt.Fprintf(builder, "GracePeriod: %s\n", c.GracePeriod)
-	fmt.Fprintf(builder, "Timeout: %s\n", c.Timeout)
-	fmt.Fprintf(builder, "RF: %d\n", c.RF)
+	fmt.Fprintf(builder, "ConsistencyLevel: %s\n", cMgr.ConsistencyLevel)
+	fmt.Fprintf(builder, "GracePeriod: %s\n", cMgr.GracePeriod)
+	fmt.Fprintf(builder, "Timeout: %s\n", cMgr.Timeout)
+	fmt.Fprintf(builder, "RF: %d\n", cMgr.RF)
 
 	fmt.Fprintln(builder, "Ring:")
-	for id, node := range c.Ring {
+	for id, node := range cMgr.defaultNodes {
 		fmt.Fprintf(builder, "  ID %d -> %s\n", id, node)
 	}
 
 	return builder.String()
 }
 
+type config struct {
+	ConsistencyLevel string             `json:"consistencyLevel"` //e.g. "QUORUM"
+	GracePeriod      time.Duration      `json:"gracePeriod" `     //duration in seconds
+	Timeout          time.Duration      `json:"timeout"`          //duration in seconds
+	RF               int                `json:"rf"`               //replication factor
+	Ring             map[int]configNode `json:"ring"`             //all nodes in ring
+}
+
 type configNode struct {
-	Port int `json:"port"`
+	Port   int  `json:"port"`
 	IsDead bool `json:"isDead"`
 }
 
