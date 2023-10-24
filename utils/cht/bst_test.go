@@ -300,8 +300,13 @@ func TestGetSuccessors(t *testing.T) {
 
 	// Test Wraparound
 	succof10_count2 := tree.GetSuccessors(HashId(10), 2)
-	if !assertHashIdsMatches(succof10_count2, []int{12, 2}) {
+	if !assertHashIdsMatches(succof10_count2, []int{12, 0}) {
 		t.Log(tree.HashIds())
 		t.Fatalf("tree.GetSuccessors(HashId(10), 2) returned %v", succof10_count2)
+	}
+	succof6_count10 := tree.GetSuccessors(HashId(6), 10)
+	if !assertHashIdsMatches(succof6_count10, []int{8, 10, 12, 0, 2, 4}) {
+		t.Log(tree.HashIds())
+		t.Fatalf("tree.GetSuccessors(HashId(6), 10) returned %v", succof6_count10)
 	}
 }
