@@ -10,6 +10,8 @@ import (
 	"sync"
 )
 
+// Database, keyed by table name.
+// Contains a set of columns defining the column key for each data item in each individual Row.
 type Database struct {
 	TableName string      `json:"TableName"`
 	Columns   []string    `json:"Columns"`
@@ -41,6 +43,7 @@ func (d Database) String() string {
 	return builder.String()
 }
 
+// Manages the database
 type DatabaseManager struct {
 	filepath string
 	mux      sync.Mutex

@@ -10,15 +10,62 @@ import (
 	"time"
 )
 
-type Config struct {
+// Manages the configuration, based on the given config filepath.
+type ConfigManager struct {
+	filepath         string
+	defaultNodes map[int]Node
+	ConsistencyLevel string // e.g. "QUORUM"
+	GracePeriod      time.Duration
+	Timeout          time.Duration
+	RF               int          // replication factor
+}
+
+// Load configuration from a given path.
+func newConfigManager(path string) *ConfigManager {
+	if !filepath.IsAbs(path) {
+		panic(errors.New("the provided path is not an absolute path"))
+	}
+
+	file, err := os.ReadFile(path)
+	if err != nil {
+		panic(fmt.Sprintf("Error reading config JSON: %v", err))
+	}
+
+	var data config
+	err = json.Unmarshal(file, &data)
+	if err != nil {
+		panic(fmt.Sprintf("Error unmarshalling config JSON: %v", err))
+	}
+
+	// Convert hardcoded node data into Nodes
+	nodeMap := make(map[int]Node, 0)
+	for id, configNode := range(data.Ring) {
+		nodeMap[id] = Node{
+			Id: id,
+			Port: configNode.Port,
+			IsDead: configNode.IsDead,
+		}
+	}
+
+	return &ConfigManager{
+		path,
+		nodeMap,
+		data.ConsistencyLevel,
+		data.GracePeriod,
+		data.Timeout,
+		data.RF,
+	}
+}
+
+type config struct {
 	ConsistencyLevel string        `json:"consistencyLevel"` //e.g. "QUORUM"
 	GracePeriod      time.Duration `json:"gracePeriod" `     //duration in seconds
 	Timeout          time.Duration `json:"timeout"`          //duration in seconds
 	RF               int           `json:"rf"`               //replication factor
-	Ring             map[int]Node  `json:"ring"`             //all nodes in ring
+	Ring             map[int]configNode  `json:"ring"`             //all nodes in ring
 }
 
-func (c Config) String() string {
+func (c config) String() string {
 	builder := &strings.Builder{}
 
 	fmt.Fprintf(builder, "ConsistencyLevel: %s\n", c.ConsistencyLevel)
@@ -34,38 +81,15 @@ func (c Config) String() string {
 	return builder.String()
 }
 
-type ConfigManager struct {
-	filepath string
-	Data     Config
+type configNode struct {
+	Port int `json:"port"`
+	IsDead bool `json:"isDead"`
 }
 
-func newConfigManager(path string) *ConfigManager {
-	if !filepath.IsAbs(path) {
-		panic(errors.New("the provided path is not an absolute path"))
+func (n configNode) String() string {
+	deadStatus := "Alive"
+	if n.IsDead {
+		deadStatus = "Dead"
 	}
-
-	file, err := os.ReadFile(path)
-	if err != nil {
-		panic(err)
-	}
-	var data Config
-	json.Unmarshal(file, &data)
-	return &ConfigManager{filepath: path, Data: data}
-}
-
-func (configManager *ConfigManager) findNodeByPort(port int) (int, *Node) {
-	for id, node := range configManager.Data.Ring {
-		if node.Port == port {
-			return id, &node
-		}
-	}
-	panic(fmt.Errorf("could not find node with port %d", port))
-}
-
-func (configManager *ConfigManager) FindNodeById(id int) *Node {
-	node, exists := configManager.Data.Ring[id]
-	if !exists {
-		panic(fmt.Errorf("could not find node with id %d", id))
-	}
-	return &node
+	return fmt.Sprintf("Port: %d, Status: %s", n.Port, deadStatus)
 }

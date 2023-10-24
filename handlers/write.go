@@ -7,35 +7,31 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+const BASE_WRITE_URL = "http://localhost:%d/write/%v"
+
 func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
 	courseId := c.Params("courseId")
 
 	/* get list of node ids to forward request to from CH */
-	ids := []int{1, 2, 3} //TODO: remove after ch successors implementation
-
-	nodes := make([]utils.Node, len(ids))
-	for i, nodeId := range ids {
-		node := h.NodeManager.ConfigManager.FindNodeById(nodeId)
-		nodes[i] = *node
-	}
+	nodes := h.NodeManager.GetNodesForKey(courseId)
 
 	noOfAck := 0
 	reqsToForward := []utils.Request{}
 
-	//check to write to self
-	for i, nodeId := range ids {
-
-		//write to self
-		if nodeId == h.NodeManager.Id {
-
-			/* TODO: write to self */
+	for _, node := range(nodes) {
+		if node.Id == h.NodeManager.Id {
+			// TODO: Write from self
 			noOfAck++
 			continue
 		}
 
-		reqsToForward = append(reqsToForward, utils.Request{
-			NodeId: nodeId,
-			Url:    fmt.Sprintf("http://localhost:%d/write/%d", nodes[i].Port, courseId)})
+		reqsToForward = append(
+			reqsToForward,
+			utils.Request{
+				NodeId: node.Id,
+				Url: fmt.Sprintf(BASE_WRITE_URL, node.Port, courseId),
+			},
+		)
 	}
 
 	responses := h.NodeManager.ForwardGetRequests(reqsToForward)
@@ -60,7 +56,7 @@ func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
 	*/
 
 	//if all nodes respond
-	if noOfAck == len(ids) {
+	if noOfAck == len(nodes) {
 		//return successful response with data
 	}
 

@@ -21,6 +21,18 @@ type Response struct {
 	Error      error
 }
 
+type RequestType int
+
+const (
+	Read  RequestType = iota // 0 for read request
+	Write                    // 1 for write request
+)
+
+var RequestTypeStr = map[RequestType]string{
+	Read:  "read",
+	Write: "write",
+}
+
 type Request struct {
 	NodeId int
 	Url    string
@@ -49,7 +61,7 @@ func (nm *NodeManager) ForwardGetRequests(requests []Request) []Response {
 func (nm *NodeManager) nonBlockingGet(req Request, wg *sync.WaitGroup, ch *chan Response) {
 	defer wg.Done()
 
-	timeout := time.Duration(nm.ConfigManager.Data.Timeout)
+	timeout := time.Duration(nm.ConfigManager.Timeout)
 	client := &http.Client{
 		Timeout: timeout * time.Second,
 	}
