@@ -5,11 +5,6 @@ import (
 	"fmt"
 )
 
-// Get the list of HashIds for testing
-func (tree *bst) hashIds() []HashId {
-	return tree.hashIdsRec(tree.root)
-}
-
 func assertHashIdsMatches(hashIds []HashId, ints []int) bool {
 	if len(hashIds) != len(ints) {
 		return false
@@ -23,20 +18,17 @@ func assertHashIdsMatches(hashIds []HashId, ints []int) bool {
 	return true
 }
 
-func (tree *bst) hashIdsRec(node *bstNode) []HashId {
-	ls := make([]HashId, 0)
-	if node == nil {
-		return ls
+func assertNodeIdsMatches(nodeIds []NodeId, ints []int) bool {
+	if len(nodeIds) != len(ints) {
+		return false
 	}
-	if node.left != nil {
-		ls = append(ls, tree.hashIdsRec(node.left)...)
+
+	for i := range(nodeIds) {
+		if string(nodeIds[i]) != fmt.Sprintf("value%d", ints[i]) {
+			return false
+		}
 	}
-	
-	ls = append(ls, node.key)
-	if node.right != nil {
-		ls = append(ls, tree.hashIdsRec(node.right)...)
-	}
-	return ls
+	return true
 }
 
 func TestSearchAndInsert(t *testing.T) {
@@ -58,13 +50,16 @@ func TestSearchAndInsert(t *testing.T) {
 	}
 
 	// Test Inorder Sorted-ness
-	for i, hashId := range(tree.hashIds()) {
+	for i, hashId := range(tree.HashIds()) {
 		if hashId != HashId(testInts[i]) {
 			t.Fatalf("tree is not sorted. hashId = %d, testInts[i] = %d.", hashId, testInts[i])
 		}
 	}
 
-	t.Log(tree.hashIds())
+	// Test length
+	if tree.Len() != len(testInts) {
+		t.Fatalf("tree.Len() = %v, expected %v", tree.Len(), len(testInts))
+	}
 }
 
 func TestSearchAndOutOfOrderInsert(t *testing.T) {
@@ -87,14 +82,11 @@ func TestSearchAndOutOfOrderInsert(t *testing.T) {
 	}
 
 	// Test Inorder Sorted-ness
-	for i, hashId := range(tree.hashIds()) {
+	for i, hashId := range(tree.HashIds()) {
 		if hashId != HashId(testInts[i]) {
 			t.Fatalf("tree is not sorted. hashId = %d, testInts[i] = %d.", hashId, testInts[i])
 		}
 	}
-
-	t.Log(tree.hashIds())
-
 	
 	tree = newBST()
 	testInts = []int{1,2,3,5,6,33,42,99}
@@ -115,13 +107,16 @@ func TestSearchAndOutOfOrderInsert(t *testing.T) {
 	}
 
 	// Test Inorder Sorted-ness
-	for i, hashId := range(tree.hashIds()) {
+	for i, hashId := range(tree.HashIds()) {
 		if hashId != HashId(testInts[i]) {
 			t.Fatalf("tree is not sorted. hashId = %d, testInts[i] = %d.", hashId, testInts[i])
 		}
 	}
-
-	t.Log(tree.hashIds())
+	
+	// Test length
+	if tree.Len() != len(testInts) {
+		t.Fatalf("tree.Len() = %v, expected %v", tree.Len(), len(testInts))
+	}
 }
 
 
@@ -142,69 +137,69 @@ func TestDeletes(t *testing.T) {
 			t.Fatalf("tree.Search(%d) = %v, expected %v.", testInt, nodeId, expectedNodeId)
 		}
 	}
-	if !assertHashIdsMatches(tree.hashIds(), testInts) {
-		t.Log(tree.hashIds())
+	if !assertHashIdsMatches(tree.HashIds(), testInts) {
+		t.Log(tree.HashIds())
 		t.Fatalf("Inserts failed.")
 	}
 
 	// Test Deletes
 	tree.Delete(HashId(11))
-	if !assertHashIdsMatches(tree.hashIds(), []int{0,1,2,3,4,5,6,7,8,9,10,12}) {
-		t.Log(tree.hashIds())
+	if !assertHashIdsMatches(tree.HashIds(), []int{0,1,2,3,4,5,6,7,8,9,10,12}) {
+		t.Log(tree.HashIds())
 		t.Fatalf("tree.Delete(11) failed.")
 	}
 	
 	tree.Delete(HashId(8))
-	if !assertHashIdsMatches(tree.hashIds(), []int{0,1,2,3,4,5,6,7,9,10,12}) {
-		t.Log(tree.hashIds())
+	if !assertHashIdsMatches(tree.HashIds(), []int{0,1,2,3,4,5,6,7,9,10,12}) {
+		t.Log(tree.HashIds())
 		t.Fatalf("tree.Delete(8) failed.")
 	}
 	
 	tree.Delete(HashId(10))
-	if !assertHashIdsMatches(tree.hashIds(), []int{0,1,2,3,4,5,6,7,9,12}) {
-		t.Log(tree.hashIds())
+	if !assertHashIdsMatches(tree.HashIds(), []int{0,1,2,3,4,5,6,7,9,12}) {
+		t.Log(tree.HashIds())
 		t.Fatalf("tree.Delete(10) failed.")
 	}
 	
 	tree.Delete(HashId(9))
-	if !assertHashIdsMatches(tree.hashIds(), []int{0,1,2,3,4,5,6,7,12}) {
-		t.Log(tree.hashIds())
+	if !assertHashIdsMatches(tree.HashIds(), []int{0,1,2,3,4,5,6,7,12}) {
+		t.Log(tree.HashIds())
 		t.Fatalf("tree.Delete(9) failed.")
 	}
 
 	tree.Delete(HashId(12))
-	if !assertHashIdsMatches(tree.hashIds(), []int{0,1,2,3,4,5,6,7}) {
-		t.Log(tree.hashIds())
+	if !assertHashIdsMatches(tree.HashIds(), []int{0,1,2,3,4,5,6,7}) {
+		t.Log(tree.HashIds())
 		t.Fatalf("tree.Delete(12) failed.")
 	}
 	
 	tree.Delete(HashId(4))
-	if !assertHashIdsMatches(tree.hashIds(), []int{0,1,2,3,5,6,7}) {
-		t.Log(tree.hashIds())
+	if !assertHashIdsMatches(tree.HashIds(), []int{0,1,2,3,5,6,7}) {
+		t.Log(tree.HashIds())
 		t.Fatalf("tree.Delete(4) failed.")
 	}
 	
 	tree.Delete(HashId(2))
-	if !assertHashIdsMatches(tree.hashIds(), []int{0,1,3,5,6,7}) {
-		t.Log(tree.hashIds())
+	if !assertHashIdsMatches(tree.HashIds(), []int{0,1,3,5,6,7}) {
+		t.Log(tree.HashIds())
 		t.Fatalf("tree.Delete(2) failed.")
 	}
 	
 	tree.Delete(HashId(0))
-	if !assertHashIdsMatches(tree.hashIds(), []int{1,3,5,6,7}) {
-		t.Log(tree.hashIds())
+	if !assertHashIdsMatches(tree.HashIds(), []int{1,3,5,6,7}) {
+		t.Log(tree.HashIds())
 		t.Fatalf("tree.Delete(0) failed.")
 	}
 	
 	tree.Delete(HashId(1))
-	if !assertHashIdsMatches(tree.hashIds(), []int{3,5,6,7}) {
-		t.Log(tree.hashIds())
+	if !assertHashIdsMatches(tree.HashIds(), []int{3,5,6,7}) {
+		t.Log(tree.HashIds())
 		t.Fatalf("tree.Delete(1) failed.")
 	}
 	
 	tree.Delete(HashId(3))
-	if !assertHashIdsMatches(tree.hashIds(), []int{5,6,7}) {
-		t.Log(tree.hashIds())
+	if !assertHashIdsMatches(tree.HashIds(), []int{5,6,7}) {
+		t.Log(tree.HashIds())
 		t.Fatalf("tree.Delete(3) failed.")
 	}
 }
@@ -217,8 +212,8 @@ func TestClosestSmallerNode(t *testing.T) {
 	for _, testInt := range(testInts) {
 		tree.Insert(HashId(testInt), NodeId(fmt.Sprintf("value%d", testInt)))
 	}
-	if !assertHashIdsMatches(tree.hashIds(), testInts) {
-		t.Log(tree.hashIds())
+	if !assertHashIdsMatches(tree.HashIds(), testInts) {
+		t.Log(tree.HashIds())
 		t.Fatalf("Inserts failed.")
 	}
 
@@ -270,4 +265,61 @@ func TestClosestSmallerNode(t *testing.T) {
 		}
 	}
 	
+}
+
+func TestGetSuccessors(t *testing.T) {
+	tree := newBST()
+	testInts := []int{0, 2, 4, 6, 8, 10, 12}
+
+	// Insert Nodes
+	for _, testInt := range(testInts) {
+		tree.Insert(HashId(testInt), NodeId(fmt.Sprintf("value%d", testInt)))
+	}
+	if !assertHashIdsMatches(tree.HashIds(), testInts) {
+		t.Log(tree.HashIds())
+		t.Fatalf("Inserts failed.")
+	}
+
+	// Test Successors
+	succof0_count0 := tree.GetSuccessors(HashId(0), 0)
+	if !assertNodeIdsMatches(succof0_count0, make([]int, 0)) {
+		t.Log(tree.HashIds())
+		t.Fatalf("tree.GetSuccessors(HashId(0), 0) returned %v", succof0_count0)
+	}
+
+	succof0_count1 := tree.GetSuccessors(HashId(0), 1)
+	if !assertNodeIdsMatches(succof0_count1, []int{2}) {
+		t.Log(tree.HashIds())
+		t.Fatalf("tree.GetSuccessors(HashId(0), 1) returned %v", succof0_count1)
+	}
+
+	succof0_count5 := tree.GetSuccessors(HashId(0), 5)
+	if !assertNodeIdsMatches(succof0_count5, []int{2,4,6,8,10}) {
+		t.Log(tree.HashIds())
+		t.Fatalf("tree.GetSuccessors(HashId(0), 5) returned %v", succof0_count5)
+	}
+
+	succof0_count6 := tree.GetSuccessors(HashId(0), 6)
+	if !assertNodeIdsMatches(succof0_count6, []int{2,4,6,8,10,12}) {
+		t.Log(tree.HashIds())
+		t.Fatalf("tree.GetSuccessors(HashId(0), 6) returned %v", succof0_count6)
+	}
+
+	succof0_count7 := tree.GetSuccessors(HashId(0), 7)
+	if !assertNodeIdsMatches(succof0_count7, []int{2,4,6,8,10,12}) {
+		t.Log(tree.HashIds())
+		t.Fatalf("tree.GetSuccessors(HashId(0), 7) returned %v", succof0_count7)
+	}
+
+	// Test Wraparound
+	succof10_count2 := tree.GetSuccessors(HashId(10), 2)
+	if !assertNodeIdsMatches(succof10_count2, []int{12, 0}) {
+		t.Log(tree.HashIds())
+		t.Fatalf("tree.GetSuccessors(HashId(10), 2) returned %v", succof10_count2)
+	}
+	succof6_count10 := tree.GetSuccessors(HashId(6), 10)
+	if !assertNodeIdsMatches(succof6_count10, []int{8, 10, 12, 0, 2, 4}) {
+		t.Log(tree.HashIds())
+		t.Fatalf("tree.GetSuccessors(HashId(6), 10) returned %v", succof6_count10)
+	}
 }

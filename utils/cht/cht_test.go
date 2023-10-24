@@ -64,3 +64,57 @@ func TestGetNode(t *testing.T) {
 	//TODO: add tests based on the hashing
 	
 }
+
+func TestGetNodes(t *testing.T) {
+	table := NewCHashTable(make([]NodeId, 0))
+	err := table.AddNode(NodeId("6969"))
+	if err != nil {
+		t.Fatalf("Error adding node 6969: %v", err)
+	}
+	err = table.AddNode(NodeId("8080"))
+	if err != nil {
+		t.Fatalf("Error adding node 8080: %v", err)
+	}
+	err = table.AddNode(NodeId("8081"))
+	if err != nil {
+		t.Fatalf("Error adding node 8081: %v", err)
+	}
+	err = table.AddNode(NodeId("8079"))
+	if err != nil {
+		t.Fatalf("Error adding node 8079: %v", err)
+	}
+
+	// Test GetNodes by checking the size of the list: The main checks are done in bst_test
+	nodeIds := table.GetNodes("asdf", 0)
+	if len(nodeIds) != 0 {
+		t.Fatalf("Expected 0 nodeIds, instead got %v", len(nodeIds))
+	}
+	
+	nodeIds = table.GetNodes("asdf", 1)
+	if len(nodeIds) != 1 {
+		t.Fatalf("Expected 1 nodeId, instead got %v", len(nodeIds))
+	}
+	
+	nodeIds = table.GetNodes("asdf", 2)
+	if len(nodeIds) != 2 {
+		t.Fatalf("Expected 2 nodeIds, instead got %v", len(nodeIds))
+	}
+	
+	nodeIds = table.GetNodes("asdf", 3)
+	if len(nodeIds) != 3 {
+		t.Fatalf("Expected 3 nodeIds, instead got %v", len(nodeIds))
+	}
+
+	// (All nodes)
+	nodeIds = table.GetNodes("asdf", 4)
+	if len(nodeIds) != 4 {
+		t.Fatalf("Expected 4 nodeIds, instead got %v", len(nodeIds))
+	}
+
+	// Should reset to 4
+	nodeIds = table.GetNodes("asdf", 5)
+	if len(nodeIds) != 4 {
+		t.Fatalf("Expected 3 nodeIds, instead got %v", len(nodeIds))
+	}
+	//TODO: add tests based on the hashing
+}

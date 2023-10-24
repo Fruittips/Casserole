@@ -5,6 +5,8 @@
 
 package cht
 
+import "fmt"
+
 type bstNode struct {
 	key HashId
 	value NodeId
@@ -44,12 +46,46 @@ func (tree *bst) ClosestSmallerNode(key HashId) NodeId {
 			return ""
 		}
 		// Get maximum
-		closestNode = tree.root
-		for closestNode.right != nil {
-			closestNode = closestNode.right
-		}
+		closestNode = tree.treeMax(tree.root)
 	}
 	return closestNode.value
+}
+
+// Given a HashId of a node, return a list of HashIds of the successors of that node.
+// If successorCount exceeds len(tree)-2, returns all available successors.
+// If HashId of node doesn't exist, panics
+// Note that this search wraparounds: The successor of the rightmost node in the tree is the leftmost.
+func (tree *bst) GetSuccessors(key HashId, successorCount int) []NodeId {
+	successors := make([]NodeId, 0)
+
+	if successorCount == 0 {
+		return successors
+	}
+
+	if successorCount > tree.Len() - 1 {
+		// Return all available successors
+		successorCount = tree.Len() - 1
+	}
+
+	// Identify node
+	node := tree.searchRec(tree.root, key)
+	if node == nil {
+		panic(fmt.Sprintf("No node with HashId %v", key))
+	}
+
+	// Get successors
+	for i := 0; i < successorCount; i++ {
+		successor := tree.successor(node)
+		
+		// If successor is nil, successor is the leftmost node
+		if successor == nil {
+			successor = tree.treeMin(tree.root)
+		}
+		
+		successors = append(successors, successor.value)
+		node = successor
+	}
+	return successors
 }
 
 // Insert key into tree
@@ -91,6 +127,16 @@ func (tree *bst) Insert(key HashId, value NodeId) {
 func (tree *bst) Delete(key HashId) {
 	node := tree.searchRec(tree.root, key)
 	tree.deleteNode(node)
+}
+
+// Returns a slice of all HashIds in the tree.
+func (tree *bst) HashIds() []HashId {
+	return tree.hashIdsRec(tree.root)
+}
+
+// Returns the number of nodes in the tree
+func (tree *bst) Len() int {
+	return len(tree.HashIds())
 }
 
 // Recursively searches tree for key. Returns either the bstNode or nil.
@@ -161,10 +207,7 @@ func (tree *bst) deleteNode(node *bstNode) {
 
 	// If node has two children, we need to find the successor to transplant
 	// This successor is the leftmost element of the subtree rooted at node.right
-	successor := node.right
-	for successor.left != nil {
-		successor = successor.left
-	}
+	successor := tree.treeMin(node.right)
 
 	if successor.parent == node {
 		// If successor is node's right child, then replace
@@ -196,4 +239,55 @@ func (tree *bst) transplant(u, v *bstNode) {
 		// Update v to recognise parent of u
 		v.parent = u.parent
 	}
+}
+
+func (tree *bst) hashIdsRec(node *bstNode) []HashId {
+	ls := make([]HashId, 0)
+	if node == nil {
+		return ls
+	}
+	if node.left != nil {
+		ls = append(ls, tree.hashIdsRec(node.left)...)
+	}
+	
+	ls = append(ls, node.key)
+	if node.right != nil {
+		ls = append(ls, tree.hashIdsRec(node.right)...)
+	}
+	return ls
+}
+
+// Returns the successor of a given node
+func (tree *bst) successor(node *bstNode) *bstNode {
+	// If right child exists, return the leftmost
+	if node.right != nil {
+		return tree.treeMin(node.right)
+	}
+
+	// Otherwise, depends on parent
+	// - no parent: node is root, with no successor
+	// - node is left child : successor is parent
+	// - node is right child: successor is somewhere upwards (or no successor)
+	successor := node.parent
+	for successor != nil && node == successor.right {
+		node = successor
+		successor = successor.parent
+	}
+	return successor
+}
+
+// Returns the leftmost node in the subtree of this node (including this node)
+func (tree *bst) treeMin(node *bstNode) *bstNode {
+	for node.left != nil {
+		node = node.left
+	}
+	return node
+}
+
+// Returns the rightmost node in the subtree of this node (including this node)
+func (tree *bst) treeMax(node *bstNode) *bstNode {
+	for node.right != nil {
+		node = node.right
+	}
+	return node
 }
