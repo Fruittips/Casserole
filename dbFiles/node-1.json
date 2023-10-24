@@ -1,14 +1,24 @@
 {
-    "TableName": "hinted handoffs",
-    "Columns":["course_name", "num_of_slots"],
-    "Row": {
-        "0": {
-            "Data": ["DSC", "63", "27", "Oday is gr9"],
-            "Timestamp": 1637953716
-        },
-        "3":{
-            "Data": ["ESC", "63", "90", "Oday is cutie"],
-            "Timestamp": 1697953716
-        }
+    "TableName": "Student Courses",
+    "PartitionKey": "CourseId",
+    "Partitions": {
+        "100": [
+            {
+                "StudentId": 100000,
+                "CreatedAt": 123123123,
+                "DeletedAt": 123123123,
+                "StudentName": "Mah Yi Da"
+            }
+        ],
+        "200": [
+            {
+                "StudentId": 100000,
+                "CreatedAt": 123123123,
+                "DeletedAt": 123123123,
+                "StudentName": "Mah Yi Da"
+            }
+        ]
     }
 }
+
+

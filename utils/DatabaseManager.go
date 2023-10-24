@@ -11,18 +11,20 @@ import (
 )
 
 type Database struct {
-	TableName string      `json:"TableName"`
-	Columns   []string    `json:"Columns"`
-	Rows      map[int]Row `json:"Row"`
+	TableName    string        `json:"TableName"`
+	PartitionKey int           `json:"PartitionKey"`
+	Parititons   map[int][]Row `json:"Parititons"`
 }
 
 type Row struct {
-	Data      []string `json:"Data"`
-	Timestamp int64    `json:"Timestamp"`
+	StudentId   int    `json:"StudentId"`
+	CreatedAt   int64  `json:"CreatedAt"`
+	DeletedAt   int64  `json:"DeletedAt"`
+	StudentName string `json:"StudentName"`
 }
 
 func (r Row) String() string {
-	return fmt.Sprintf("Data: %v, Timestamp: %d", r.Data, r.Timestamp)
+	return fmt.Sprintf("StudentId: %d, CreatedAt: %d, DeletedAt: %d, StudentName: %s", r.StudentId, r.CreatedAt, r.DeletedAt, r.StudentName)
 }
 
 func (d Database) String() string {
@@ -30,12 +32,14 @@ func (d Database) String() string {
 
 	// Print basic fields
 	fmt.Fprintf(builder, "TableName: %s\n", d.TableName)
-	fmt.Fprintf(builder, "Columns: %v\n", d.Columns)
 
 	// Print rows
-	fmt.Fprintln(builder, "Rows:")
-	for id, row := range d.Rows {
-		fmt.Fprintf(builder, "  ID %d -> %s\n", id, row)
+	fmt.Fprintln(builder, "Partitions:")
+	for partitionKey, rows := range d.Parititons {
+		fmt.Fprintf(builder, "\tPartitionKey: %d\n", partitionKey)
+		for _, row := range rows {
+			fmt.Fprintf(builder, "\t\t%s\n", row)
+		}
 	}
 
 	return builder.String()
@@ -61,32 +65,40 @@ func newDatabaseManager(path string) *DatabaseManager {
 	return &DatabaseManager{filepath: path, Data: data}
 }
 
-func (db *DatabaseManager) AppendRow(newData Row) error {
+func (db *DatabaseManager) AppendRow(partitionKey int, newData Row) error {
 	db.mux.Lock()
 	defer db.mux.Unlock()
 
-	maxKey := 0
-	for key := range db.Data.Rows {
-		if key > maxKey {
-			maxKey = key
-		}
+	data, exists := db.Data.Parititons[partitionKey]
+	if !exists {
+		db.Data.Parititons[partitionKey] = []Row{newData}
+	} else {
+		db.Data.Parititons[partitionKey] = append(data, newData)
 	}
-	nextKey := maxKey + 1
-
-	db.Data.Rows[nextKey] = newData
 
 	bytes, err := json.Marshal(db.Data)
 	if err != nil {
 		return err
 	}
 
-	return os.WriteFile(db.filepath, bytes, os.ModePerm)
+	err = os.WriteFile(db.filepath, bytes, os.ModePerm)
+	return err
 }
 
-func (db *DatabaseManager) GetRowById(id int) (Row, error) {
-	data, exists := db.Data.Rows[id]
+func (db *DatabaseManager) GetRowByPartitionKey(courseId int, studentId int) (*Row, error) {
+	db.mux.Lock()
+	defer db.mux.Unlock()
+	data, exists := db.Data.Parititons[courseId]
 	if !exists {
-		return Row{}, errors.New("row does not exist")
+		return nil, errors.New("Parititon not found")
 	}
-	return data, nil
+
+	for _, row := range data {
+		if row.StudentId == studentId {
+			return &row, nil
+		}
+	}
+
+	return nil, errors.New("Row not found")
+
 }
