@@ -14,19 +14,34 @@ type HTTPResponse struct {
 	ErrorMessage string `json:"errorMessage"`
 }
 
+type RequestType int
+
+const (
+	Read  RequestType = iota // 0 for read request
+	Write                    // 1 for write request
+)
+
+var RequestTypeStr = map[RequestType]string{
+	Read:  "read",
+	Write: "write",
+}
+
+// Intra-system request
+type Request struct {
+	NodeId NodeId
+	Url    string
+}
+
+// Intra-system response
 type Response struct {
-	NodeId     int
+	NodeId     NodeId
 	StatusCode int
 	Data       Row
 	Error      error
 }
 
-type Request struct {
-	NodeId int
-	Url    string
-}
-
 func (nm *NodeManager) ForwardGetRequests(requests []Request) []Response {
+	// shouldn't this call an intra-system request? if this is an external request, then those other nodes will just ask all the replicas again causing inf loop
 	var wg sync.WaitGroup
 	respC := make(chan Response, len(requests))
 
@@ -49,7 +64,7 @@ func (nm *NodeManager) ForwardGetRequests(requests []Request) []Response {
 func (nm *NodeManager) nonBlockingGet(req Request, wg *sync.WaitGroup, ch *chan Response) {
 	defer wg.Done()
 
-	timeout := time.Duration(nm.ConfigManager.Data.Timeout)
+	timeout := time.Duration(nm.GetConfig().Timeout)
 	client := &http.Client{
 		Timeout: timeout * time.Second,
 	}

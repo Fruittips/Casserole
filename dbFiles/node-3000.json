@@ -2,7 +2,7 @@
     "TableName": "Student Courses",
     "PartitionKey": "CourseId",
     "Partitions": {
-        "100": [
+        "50.033": [
             {
                 "StudentId": 100000,
                 "CreatedAt": 123123123,
@@ -10,7 +10,7 @@
                 "StudentName": "Mah Yi Da"
             }
         ],
-        "200": [
+        "02.069": [
             {
                 "StudentId": 100000,
                 "CreatedAt": 123123123,
@@ -20,5 +20,3 @@
         ]
     }
 }
-
-

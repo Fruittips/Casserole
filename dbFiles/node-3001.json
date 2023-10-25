@@ -1,0 +1,22 @@
+{
+    "TableName": "Student Courses",
+    "PartitionKey": "CourseId",
+    "Partitions": {
+        "50.033": [
+            {
+                "StudentId": 100000,
+                "CreatedAt": 123123123,
+                "DeletedAt": 123123123,
+                "StudentName": "Mah Yi Da"
+            }
+        ],
+        "02.069": [
+            {
+                "StudentId": 100000,
+                "CreatedAt": 123123123,
+                "DeletedAt": 123123123,
+                "StudentName": "Mah Yi Da"
+            }
+        ]
+    }
+}

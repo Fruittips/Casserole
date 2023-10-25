@@ -3,8 +3,16 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gofiber/fiber/v2"
 	"os"
 )
+
+const BASE_INTERNAL_WRITE_URL = "http://localhost:%d/internal/write/%v"
+
+func (h *BaseHandler) InternalWriteHandler(c *fiber.Ctx) error {
+	// failure response
+	return c.SendStatus(500)
+}
 
 // still empty
 func check(e error) {

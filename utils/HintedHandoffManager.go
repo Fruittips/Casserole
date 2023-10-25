@@ -49,18 +49,21 @@ type HintedHandoffManager struct {
 	Data     HintedHandoff
 }
 
-func newHintedHandoffManager(path string) *HintedHandoffManager {
+func newHintedHandoffManager(path string) (*HintedHandoffManager, error) {
 	if !filepath.IsAbs(path) {
-		panic(errors.New("the provided path is not an absolute path"))
+		return nil, errors.New(fmt.Sprintf("Expected absolute path, was given %v", path))
 	}
 	file, err := os.ReadFile(path)
 	if err != nil {
-		panic(err)
+		return nil, errors.New(fmt.Sprintf("Could not read file %v, error: %v", path, err))
 	}
-	var data HintedHandoff
-	json.Unmarshal(file, &data)
 
-	return &HintedHandoffManager{filepath: path, Data: data}
+	var data HintedHandoff
+	err = json.Unmarshal(file, &data)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Could not unmarshal JSON file %v, error: %v", path, err))
+	}
+	return &HintedHandoffManager{filepath: path, Data: data}, nil
 }
 
 func (hhm *HintedHandoffManager) Append(nodeId int, dbMsg AtomicDbMessage) error {

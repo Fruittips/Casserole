@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gofiber/fiber/v2"
 	"os"
 )
 
@@ -15,6 +16,13 @@ type Data struct {
 	TableName string                     `json: "TableName"`
 	Columns   []string                   `json: "Columns"`
 	Row       map[string]AtomicDbMessage `json: "Row"`
+}
+
+const BASE_INTERNAL_READ_URL = "http://localhost:%d/internal/read/%v"
+
+func (h *BaseHandler) InternalReadHandler(c *fiber.Ctx) error {
+	// failure response
+	return c.SendStatus(500)
 }
 
 func internalRead(toNode int) (Data, error) {

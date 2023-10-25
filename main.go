@@ -30,5 +30,9 @@ func main() {
 
 	app.Get("/read/:courseId", baseHandler.ReadHandler)
 
+	app.Get("/internal/read/:courseId", baseHandler.InternalReadHandler)
+
+	app.Get("/internal/write/:courseId", baseHandler.InternalWriteHandler)
+
 	app.Listen(fmt.Sprintf(":%d", *port))
 }
