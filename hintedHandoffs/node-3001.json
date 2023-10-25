@@ -1,16 +1,13 @@
 {
-	"TableName": "hinted handoffs",
-	"Columns": [
-		"course_name",
-		"num_of_slots"
-	],
-	"Row": {
-		"346": {
-			"Data": [
-				"Mathematics",
-				"900"
-			],
-			"Timestamp": 1697980530
-		}
-	}
+  "3001": [
+    {
+      "Data": {
+        "StudentId": 100000,
+        "CreatedAt": 123123123,
+        "DeletedAt": 123123123,
+        "StudentName": "Mah Yi Da"
+      },
+      "Timestamp": 123123123
+    }
+  ]
 }
