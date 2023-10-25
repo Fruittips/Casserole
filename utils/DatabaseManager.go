@@ -50,18 +50,22 @@ type DatabaseManager struct {
 	Data     Database
 }
 
-func newDatabaseManager(path string) *DatabaseManager {
+func newDatabaseManager(path string) (*DatabaseManager, error) {
 	if !filepath.IsAbs(path) {
-		panic(errors.New("the provided path is not an absolute path"))
+		return nil, errors.New(fmt.Sprintf("Expected absolute path, was given %v", path))
 	}
 	file, err := os.ReadFile(path)
 	if err != nil {
-		panic(err)
+		return nil, errors.New(fmt.Sprintf("Could not read file %v, error: %v", path, err))
 	}
-	var data Database
-	json.Unmarshal(file, &data)
 
-	return &DatabaseManager{filepath: path, Data: data}
+	var data Database
+	err = json.Unmarshal(file, &data)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Could not unmarshal JSON file %v, error: %v", path, err))
+	}
+
+	return &DatabaseManager{filepath: path, Data: data}, nil
 }
 
 func (db *DatabaseManager) AppendRow(newData Row) error {

@@ -15,7 +15,7 @@ func (h *BaseHandler) ReadHandler(c *fiber.Ctx) error {
 	/* get list of node ids to forward request to from CH */
 	nodes := h.NodeManager.GetNodesForKey(courseId)
 	for _, node := range(nodes) {
-		log.Printf("Reading %v from N%d", courseId, node.Id)
+		log.Printf("Reading %v from node %v", courseId, node.Id)
 	}
 
 	noOfAck := 0
@@ -31,8 +31,8 @@ func (h *BaseHandler) ReadHandler(c *fiber.Ctx) error {
 		reqsToForward = append(
 			reqsToForward,
 			utils.Request{
-				NodeId: int(node.Id),
-				Url: fmt.Sprintf(BASE_READ_URL, node.Port, courseId),
+				NodeId: node.Id,
+				Url: fmt.Sprintf(BASE_INTERNAL_READ_URL, node.Port, courseId),
 			},
 		)
 	}

@@ -6,19 +6,20 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"time"
 	"strings"
+	"time"
 )
 
 // System-level configuration options
 type sysConfig struct {
-	ConsistencyLevel string             `json:"consistencyLevel"`
-	GracePeriod      time.Duration      `json:"gracePeriod" `
-	Timeout          time.Duration      `json:"timeout"`
-	RF               int                `json:"rf"`
-	Nodes            map[int]nodeConfig `json:"ring"`
+	ConsistencyLevel string                `json:"consistencyLevel"`
+	GracePeriod      time.Duration         `json:"gracePeriod" `
+	Timeout          time.Duration         `json:"timeout"`
+	RF               int                   `json:"rf"`
+	Nodes            map[string]nodeConfig `json:"ring"`
 }
 
+// Temporary struct to load from config
 type nodeConfig struct {
 	Port   int  `json:"port"`
 	IsDead bool `json:"isDead"`
@@ -54,7 +55,7 @@ func (conf *sysConfig) String() string {
 
 	fmt.Fprintln(builder, "Ring:")
 	for id, node := range conf.Nodes {
-		fmt.Fprintf(builder, "  ID %d -> %s\n", id, node)
+		fmt.Fprintf(builder, "  ID %v -> %s\n", id, node.String())
 	}
 
 	return builder.String()

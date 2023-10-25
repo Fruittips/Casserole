@@ -2,11 +2,11 @@
     "TableName": "hinted handoffs",
     "Columns":["course_name", "num_of_slots"],
     "Row": {
-        "0": {
+        "0516": {
             "Data": ["DSC", "63", "27", "Oday is gr9"],
             "Timestamp": 1637953716
         },
-        "3":{
+        "7765": {
             "Data": ["ESC", "63", "90", "Oday is cutie"],
             "Timestamp": 1697953716
         }

@@ -14,13 +14,6 @@ type HTTPResponse struct {
 	ErrorMessage string `json:"errorMessage"`
 }
 
-type Response struct {
-	NodeId     int
-	StatusCode int
-	Data       Row
-	Error      error
-}
-
 type RequestType int
 
 const (
@@ -33,9 +26,18 @@ var RequestTypeStr = map[RequestType]string{
 	Write: "write",
 }
 
+// Intra-system request
 type Request struct {
-	NodeId int
+	NodeId NodeId
 	Url    string
+}
+
+// Intra-system response
+type Response struct {
+	NodeId     NodeId
+	StatusCode int
+	Data       Row
+	Error      error
 }
 
 func (nm *NodeManager) ForwardGetRequests(requests []Request) []Response {

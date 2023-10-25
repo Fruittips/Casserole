@@ -16,14 +16,14 @@ func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
 	/* get list of node ids to forward request to from CH */
 	nodes := h.NodeManager.GetNodesForKey(courseId)
 	// for logging
-	for _, node := range(nodes) {
-		log.Printf("Writing %v to N%d", courseId, node.Id)
+	for _, node := range nodes {
+		log.Printf("Writing %v to node %v", courseId, node.Id)
 	}
 
 	noOfAck := 0
 	reqsToForward := []utils.Request{}
 
-	for _, node := range(nodes) {
+	for _, node := range nodes {
 		if node.Id == h.NodeManager.LocalId {
 			// TODO: Write from self
 			noOfAck++
@@ -33,8 +33,8 @@ func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
 		reqsToForward = append(
 			reqsToForward,
 			utils.Request{
-				NodeId: int(node.Id),
-				Url: fmt.Sprintf(BASE_WRITE_URL, node.Port, courseId),
+				NodeId: node.Id,
+				Url:    fmt.Sprintf(BASE_WRITE_URL, node.Port, courseId),
 			},
 		)
 	}
