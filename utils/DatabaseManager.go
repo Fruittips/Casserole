@@ -19,7 +19,7 @@ type Database struct {
 }
 
 type Row struct {
-	StudentId   int    `json:"StudentId"`
+	StudentId   string `json:"StudentId"`
 	CreatedAt   int64  `json:"CreatedAt"`
 	DeletedAt   int64  `json:"DeletedAt"`
 	StudentName string `json:"StudentName"`
@@ -92,7 +92,7 @@ func (db *DatabaseManager) AppendRow(partitionKey string, newData Row) error {
 	return err
 }
 
-func (db *DatabaseManager) GetRowByPartitionKey(courseId string, studentId int) (*Row, error) {
+func (db *DatabaseManager) GetRowByPartitionKey(courseId string, studentId string) (*Row, error) {
 	db.mux.Lock()
 	defer db.mux.Unlock()
 	data, exists := db.Data.Partitions[courseId]

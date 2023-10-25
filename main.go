@@ -26,13 +26,13 @@ func main() {
 		return ctx.SendString("Hello, World 👋!")
 	})
 
-	app.Get("/write/:courseId", baseHandler.WriteHandler)
+	app.Get("/write/:courseId/student/:studentId", baseHandler.WriteHandler)
 
-	app.Get("/read/:courseId", baseHandler.ReadHandler)
+	app.Get("/read/:courseId/student/:studentId", baseHandler.ReadHandler)
 
-	app.Get("/internal/read/:courseId", baseHandler.InternalReadHandler)
+	app.Get("/internal/read/courses/:courseId/student/:studentId", baseHandler.InternalReadHandler)
 
-	app.Get("/internal/write/:courseId", baseHandler.InternalWriteHandler)
+	app.Get("/internal/write/courses/:courseId/student/:studentId", baseHandler.InternalWriteHandler)
 
 	app.Listen(fmt.Sprintf(":%d", *port))
 }

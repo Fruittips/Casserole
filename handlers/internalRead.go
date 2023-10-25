@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"encoding/json"
-	"fmt"
+	"casserole/utils"
+	"net/http"
+
 	"github.com/gofiber/fiber/v2"
-	"os"
 )
 
 type AtomicDbMessage struct {
@@ -21,25 +21,26 @@ type Data struct {
 const BASE_INTERNAL_READ_URL = "http://localhost:%d/internal/read/%v"
 
 func (h *BaseHandler) InternalReadHandler(c *fiber.Ctx) error {
-	// failure response
-	return c.SendStatus(500)
+	resp := InternalRead(h.NodeManager, c.Params("courseId"), c.Params("studentId"))
+	if resp.Error == nil && resp.StatusCode == http.StatusOK {
+		return c.JSON(resp.Data)
+	}
+	return c.SendStatus(resp.StatusCode)
 }
 
-func internalRead(toNode int) (Data, error) {
-	var nodeData Data
-	// use err to determine if there is an existing json file
-	filename := fmt.Sprintf("dbFiles/node-%d.json", toNode)
-
-	_, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		emptyData := Data{TableName: "", Columns: make([]string, 0), Row: make(map[string]AtomicDbMessage)}
-		return emptyData, err
+func InternalRead(nm *utils.NodeManager, courseId string, studentId string) utils.Response {
+	data, err := nm.DatabaseManager.GetRowByPartitionKey(courseId, studentId)
+	if err != nil {
+		return utils.Response{
+			Error:      err,
+			StatusCode: 500,
+			NodeId:     nm.LocalId,
+		}
 	}
 
-	// parse ogData
-	byteValue, err := os.ReadFile(filename)
-	check(err)
-	_ = json.Unmarshal([]byte(byteValue), &nodeData)
-
-	return nodeData, nil
+	return utils.Response{
+		Data:       data,
+		StatusCode: 200,
+		NodeId:     nm.LocalId,
+	}
 }

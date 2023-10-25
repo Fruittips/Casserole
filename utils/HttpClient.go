@@ -29,16 +29,18 @@ var RequestTypeStr = map[RequestType]string{
 
 // Intra-system request
 type Request struct {
-	NodeId  NodeId
-	Url     string
-	Payload *Row
+	NodeId    NodeId
+	Url       string
+	Payload   *Row
+	CourseId  string
+	StudentId string
 }
 
 // Intra-system response
 type Response struct {
 	NodeId     NodeId
 	StatusCode int
-	Data       Row
+	Data       *Row
 	Error      error
 }
 
@@ -106,6 +108,6 @@ func (nm *NodeManager) nonBlockingRequest(req Request, wg *sync.WaitGroup, ch *c
 		return
 	}
 
-	*ch <- Response{NodeId: req.NodeId, StatusCode: resp.StatusCode, Data: *httpResponse.Data}
+	*ch <- Response{NodeId: req.NodeId, StatusCode: resp.StatusCode, Data: httpResponse.Data}
 	return
 }
