@@ -13,9 +13,9 @@ import (
 // Database, keyed by table name.
 // Contains a set of columns defining the column key for each data item in each individual Row.
 type Database struct {
-	TableName    string        `json:"TableName"`
-	PartitionKey int           `json:"PartitionKey"`
-	Partitions   map[int][]Row `json:"Partitions"`
+	TableName    string           `json:"TableName"`
+	PartitionKey int              `json:"PartitionKey"`
+	Partitions   map[string][]Row `json:"Partitions"`
 }
 
 type Row struct {
@@ -72,7 +72,7 @@ func newDatabaseManager(path string) (*DatabaseManager, error) {
 	return &DatabaseManager{filepath: path, Data: data}, nil
 }
 
-func (db *DatabaseManager) AppendRow(partitionKey int, newData Row) error {
+func (db *DatabaseManager) AppendRow(partitionKey string, newData Row) error {
 	db.mux.Lock()
 	defer db.mux.Unlock()
 
@@ -92,7 +92,7 @@ func (db *DatabaseManager) AppendRow(partitionKey int, newData Row) error {
 	return err
 }
 
-func (db *DatabaseManager) GetRowByPartitionKey(courseId int, studentId int) (*Row, error) {
+func (db *DatabaseManager) GetRowByPartitionKey(courseId string, studentId int) (*Row, error) {
 	db.mux.Lock()
 	defer db.mux.Unlock()
 	data, exists := db.Data.Partitions[courseId]

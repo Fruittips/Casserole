@@ -13,6 +13,12 @@ const BASE_WRITE_URL = "http://localhost:%d/write/%v"
 func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
 	courseId := c.Params("courseId")
 
+	newStudent := utils.Row{}
+	err := c.BodyParser(&newStudent)
+	if err != nil {
+		return err
+	}
+
 	/* get list of node ids to forward request to from CH */
 	nodes := h.NodeManager.GetNodesForKey(courseId)
 	// for logging
@@ -25,21 +31,24 @@ func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
 
 	for _, node := range nodes {
 		if node.Id == h.NodeManager.LocalId {
-			// TODO: Write from self
-			noOfAck++
+			err := h.NodeManager.DatabaseManager.AppendRow(courseId, newStudent)
+			if err != nil {
+				noOfAck++
+			}
 			continue
 		}
 
 		reqsToForward = append(
 			reqsToForward,
 			utils.Request{
-				NodeId: node.Id,
-				Url:    fmt.Sprintf(BASE_WRITE_URL, node.Port, courseId),
+				NodeId:  node.Id,
+				Url:     fmt.Sprintf(BASE_WRITE_URL, node.Port, courseId),
+				Payload: &newStudent,
 			},
 		)
 	}
 
-	responses := h.NodeManager.ForwardGetRequests(reqsToForward)
+	responses := h.NodeManager.IntraSystemRequests(reqsToForward)
 	for _, res := range responses {
 		if res.Error != nil {
 			continue

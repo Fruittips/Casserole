@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"io"
@@ -28,8 +29,9 @@ var RequestTypeStr = map[RequestType]string{
 
 // Intra-system request
 type Request struct {
-	NodeId NodeId
-	Url    string
+	NodeId  NodeId
+	Url     string
+	Payload *Row
 }
 
 // Intra-system response
@@ -40,14 +42,13 @@ type Response struct {
 	Error      error
 }
 
-func (nm *NodeManager) ForwardGetRequests(requests []Request) []Response {
-	// shouldn't this call an intra-system request? if this is an external request, then those other nodes will just ask all the replicas again causing inf loop
+func (nm *NodeManager) IntraSystemRequests(requests []Request) []Response {
 	var wg sync.WaitGroup
 	respC := make(chan Response, len(requests))
 
 	for _, req := range requests {
 		wg.Add(1)
-		go nm.nonBlockingGet(req, &wg, &respC)
+		go nm.nonBlockingRequest(req, &wg, &respC)
 	}
 
 	wg.Wait()
@@ -61,7 +62,7 @@ func (nm *NodeManager) ForwardGetRequests(requests []Request) []Response {
 	return results
 }
 
-func (nm *NodeManager) nonBlockingGet(req Request, wg *sync.WaitGroup, ch *chan Response) {
+func (nm *NodeManager) nonBlockingRequest(req Request, wg *sync.WaitGroup, ch *chan Response) {
 	defer wg.Done()
 
 	timeout := time.Duration(nm.GetConfig().Timeout)
@@ -69,7 +70,17 @@ func (nm *NodeManager) nonBlockingGet(req Request, wg *sync.WaitGroup, ch *chan 
 		Timeout: timeout * time.Second,
 	}
 
-	resp, err := client.Get(req.Url)
+	var err error
+	var resp *http.Response
+	if req.Payload != nil {
+		newStudentJson, err := json.Marshal(*req.Payload)
+		if err == nil {
+			resp, err = client.Post(req.Url, "application/json", bytes.NewBuffer(newStudentJson))
+		}
+	} else {
+		resp, err = client.Get(req.Url)
+	}
+
 	if err != nil {
 		*ch <- Response{NodeId: req.NodeId, Error: err}
 		return

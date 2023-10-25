@@ -4,6 +4,7 @@ import (
 	"casserole/utils"
 	"fmt"
 	"log"
+
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -14,14 +15,14 @@ func (h *BaseHandler) ReadHandler(c *fiber.Ctx) error {
 
 	/* get list of node ids to forward request to from CH */
 	nodes := h.NodeManager.GetNodesForKey(courseId)
-	for _, node := range(nodes) {
+	for _, node := range nodes {
 		log.Printf("Reading %v from node %v", courseId, node.Id)
 	}
 
 	noOfAck := 0
 	reqsToForward := []utils.Request{}
 
-	for _, node := range(nodes) {
+	for _, node := range nodes {
 		if node.Id == h.NodeManager.LocalId {
 			// TODO: Read from self
 			noOfAck++
@@ -32,12 +33,12 @@ func (h *BaseHandler) ReadHandler(c *fiber.Ctx) error {
 			reqsToForward,
 			utils.Request{
 				NodeId: node.Id,
-				Url: fmt.Sprintf(BASE_INTERNAL_READ_URL, node.Port, courseId),
+				Url:    fmt.Sprintf(BASE_INTERNAL_READ_URL, node.Port, courseId),
 			},
 		)
 	}
 
-	responses := h.NodeManager.ForwardGetRequests(reqsToForward)
+	responses := h.NodeManager.IntraSystemRequests(reqsToForward)
 	for _, res := range responses {
 		if res.Error != nil {
 			continue
