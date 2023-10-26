@@ -26,6 +26,14 @@ func (n Node) IsDead() bool {
 	return n.isDead
 }
 
+func (n Node) MakeDead() {
+	n.isDead = true
+}
+
+func (n Node) MakeAlive() {
+	n.isDead = false
+}
+
 func (n Node) String() string {
 	fmtStr := fmt.Sprintf("N%v: Port %d, Status: ", n.Id, n.Port)
 	if n.IsDead() {

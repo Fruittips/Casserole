@@ -1,36 +1,37 @@
 package handlers
 
 import (
-	"encoding/json"
-	"os"
+	"casserole/utils"
+	"errors"
+	"net/http"
+
+	"github.com/gofiber/fiber/v2"
 )
 
-func internalKill() error {
-	// check if config.json is_dead is false
-	filename := "config.json"
+func (h *BaseHandler) InternalKillHandler(c *fiber.Ctx) error {
 
-	var filestruc map[string]interface{}
-
-	// parse ogData
-	byteValue, err := os.ReadFile(filename)
-	if err != nil {
-		return err
+	resp := InternalKill(h.NodeManager)
+	if resp.Error == nil && resp.StatusCode == http.StatusOK {
+		return c.JSON(resp.Data)
 	}
-	_ = json.Unmarshal([]byte(byteValue), &filestruc)
+	return c.SendStatus(resp.StatusCode)
+}
 
-	filestruc["is_dead"] = true
+func InternalKill(nm *utils.NodeManager) utils.Response {
 
-	byteFile, err3 := json.MarshalIndent(filestruc, "", "\t")
-	if err3 != nil {
-		return err3
-	}
+	nm.Me().MakeDead()
 
-	// write byte into file
-	err4 := os.WriteFile(filename, byteFile, 0644)
-	if err3 != nil {
-		return err4
+	if nm.Me().IsDead() {
+		return utils.Response{
+			Error:      errors.New("isDead was not changed to true"),
+			StatusCode: 200,
+			NodeId:     nm.LocalId,
+		}
 	}
 
-	return nil
+	return utils.Response{
+		StatusCode: 500,
+		NodeId:     nm.LocalId,
+	}
 
 }

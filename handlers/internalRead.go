@@ -21,7 +21,12 @@ type Data struct {
 const BASE_INTERNAL_READ_URL = "http://localhost:%d/internal/read/%v"
 
 func (h *BaseHandler) InternalReadHandler(c *fiber.Ctx) error {
-	resp := InternalRead(h.NodeManager, c.Params("courseId"), c.Params("studentId"))
+	r := new(utils.Request)
+	if err := c.BodyParser(r); err != nil {
+		return err
+	}
+
+	resp := InternalRead(h.NodeManager, r.CourseId, r.StudentId)
 	if resp.Error == nil && resp.StatusCode == http.StatusOK {
 		return c.JSON(resp.Data)
 	}

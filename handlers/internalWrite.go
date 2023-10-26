@@ -1,56 +1,42 @@
 package handlers
 
 import (
-	"encoding/json"
-	"fmt"
+	"casserole/utils"
+	"net/http"
+
 	"github.com/gofiber/fiber/v2"
-	"os"
 )
 
 const BASE_INTERNAL_WRITE_URL = "http://localhost:%d/internal/write/%v"
 
-func (h *BaseHandler) InternalWriteHandler(c *fiber.Ctx) error {
+func (h *BaseHandler) InternalWriteHandler(c *fiber.Ctx, newData utils.Row) error {
 	// failure response
-	return c.SendStatus(500)
-}
 
-// still empty
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
-
-func internalWrite(curNode int, a AtomicDbMessage, toNode int) error {
-	// check if config.json is_dead is false
-	is_dead, err := checkIsDead()
-	// write into json file service
-	if is_dead {
+	r := new(utils.Request)
+	if err := c.BodyParser(r); err != nil {
 		return err
 	}
 
-	d, err2 := internalRead(toNode)
-	if err2 != nil {
-		return err2
+	resp := InternalWrite(h.NodeManager, r.CourseId, *r.Payload)
+	if resp.Error == nil && resp.StatusCode == http.StatusOK {
+		return c.JSON(resp.Data)
+	}
+	return c.SendStatus(resp.StatusCode)
+}
+
+func InternalWrite(nm *utils.NodeManager, partitionKey string, newData utils.Row) utils.Response {
+
+	err := nm.DatabaseManager.AppendRow(partitionKey, newData)
+	if err != nil {
+		return utils.Response{
+			Error:      err,
+			StatusCode: 500,
+			NodeId:     nm.LocalId,
+		}
 	}
 
-	// Add the data into the struct
-	strDeadNodeId := fmt.Sprintf("%d", toNode)
-	d.Row[strDeadNodeId] = a
-
-	// convert struct into bytes
-	byteFile, err3 := json.MarshalIndent(d, "", "\t")
-	if err3 != nil {
-		return err3
+	return utils.Response{
+		StatusCode: 200,
+		NodeId:     nm.LocalId,
 	}
-
-	// write byte into file
-	filename := fmt.Sprintf("dbFiles/node-%d.json", toNode)
-	err4 := os.WriteFile(filename, byteFile, 0644)
-	if err3 != nil {
-		return err4
-	}
-
-	return nil
-
 }

@@ -75,7 +75,7 @@ func (nm *NodeManager) nonBlockingRequest(req Request, wg *sync.WaitGroup, ch *c
 	var err error
 	var resp *http.Response
 	if req.Payload != nil {
-		newStudentJson, err := json.Marshal(*req.Payload)
+		newStudentJson, err := json.Marshal(req)
 		if err == nil {
 			resp, err = client.Post(req.Url, "application/json", bytes.NewBuffer(newStudentJson))
 		}
