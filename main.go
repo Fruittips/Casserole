@@ -34,5 +34,11 @@ func main() {
 
 	app.Get("/internal/write/courses/:courseId/student/:studentId", baseHandler.InternalWriteHandler)
 
+	app.Get("/internal/checkhh/courses/:courseId/student/:studentId", baseHandler.InternalCheckHHHandler)
+
+	app.Get("/internal/revive/courses/:courseId/student/:studentId", baseHandler.InternalReviveHandler)
+
+	app.Get("/internal/kill/courses/:courseId/student/:studentId", baseHandler.InternalKillHandler)
+
 	app.Listen(fmt.Sprintf(":%d", *port))
 }

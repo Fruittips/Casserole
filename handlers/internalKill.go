@@ -8,6 +8,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+const BASE_INTERNAL_KILL_URL = "http://localhost:%d/internal/kill/%v"
+
 func (h *BaseHandler) InternalKillHandler(c *fiber.Ctx) error {
 
 	resp := InternalKill(h.NodeManager)

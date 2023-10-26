@@ -9,7 +9,7 @@ import (
 
 const BASE_INTERNAL_WRITE_URL = "http://localhost:%d/internal/write/%v"
 
-func (h *BaseHandler) InternalWriteHandler(c *fiber.Ctx, newData utils.Row) error {
+func (h *BaseHandler) InternalWriteHandler(c *fiber.Ctx) error {
 	// failure response
 
 	r := new(utils.Request)

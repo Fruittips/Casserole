@@ -9,7 +9,7 @@ import (
 
 const BASE_INTERNAL_CHECKHH_URL = "http://localhost:%d/internal/checkhh/%v"
 
-func (h *BaseHandler) InternalCheckHHHandlers(c *fiber.Ctx) error {
+func (h *BaseHandler) InternalCheckHHHandler(c *fiber.Ctx) error {
 
 	resp := InternalCheckHH(h.NodeManager)
 	if resp.Error == nil && resp.StatusCode == http.StatusOK {
