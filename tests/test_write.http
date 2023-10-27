@@ -1,0 +1,9 @@
+POST http://127.0.0.1:3000/write/course/50.023/student/1006969
+Content-Type: application/json
+
+{
+	"StudentId": "1006969",
+	"CreatedAt": 123123123,
+	"DeletedAt": 123123123,
+	"StudentName": "Elephant"
+}
