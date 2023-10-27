@@ -1,14 +1,8 @@
 package utils
 
-import {
-	"encoding/json"
-	"errors"
-	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
+import (
 	"sync"
-}
+)
 
 // structs
 type RepairData struct {
