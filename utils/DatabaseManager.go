@@ -14,7 +14,7 @@ import (
 // Contains a set of columns defining the column key for each data item in each individual Row.
 type Database struct {
 	TableName    string           `json:"TableName"`
-	PartitionKey int              `json:"PartitionKey"`
+	PartitionKey string           `json:"PartitionKey"`
 	Partitions   map[string][]Row `json:"Partitions"`
 }
 
@@ -26,7 +26,7 @@ type Row struct {
 }
 
 func (r Row) String() string {
-	return fmt.Sprintf("StudentId: %d, CreatedAt: %d, DeletedAt: %d, StudentName: %s", r.StudentId, r.CreatedAt, r.DeletedAt, r.StudentName)
+	return fmt.Sprintf("StudentId: %s, CreatedAt: %d, DeletedAt: %d, StudentName: %s", r.StudentId, r.CreatedAt, r.DeletedAt, r.StudentName)
 }
 
 func (d Database) String() string {
@@ -37,8 +37,8 @@ func (d Database) String() string {
 
 	// Print rows
 	fmt.Fprintln(builder, "Partitions:")
-	for partitionKey, rows := range d.Partitions {
-		fmt.Fprintf(builder, "\tPartitionKey: %d\n", partitionKey)
+	for partitionKeyValue, rows := range d.Partitions {
+		fmt.Fprintf(builder, "%s: %s\n", d.PartitionKey, partitionKeyValue)
 		for _, row := range rows {
 			fmt.Fprintf(builder, "\t\t%s\n", row)
 		}

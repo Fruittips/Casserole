@@ -8,17 +8,17 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-const BASE_READ_URL = "http://localhost:%d/read/%v"
+const READ_ENDPOINT_FSTRING = "/read/courses/%v/student/%v"
 
 func (h *BaseHandler) ReadHandler(c *fiber.Ctx) error {
+	// Internal read URL: Port, CourseId, StudentId
+	internal_read_url := "http://localhost:%d" + INTERNAL_READ_ENDPOINT_FSTRING
+	
 	courseId := c.Params("courseId")
 	studentId := c.Params("studentId")
 
 	/* get list of node ids to forward request to from CH */
 	nodes := h.NodeManager.GetNodesForKey(courseId)
-	for _, node := range nodes {
-		log.Printf("Reading %v from node %v", courseId, node.Id)
-	}
 
 	noOfAck := 0
 	reqsToForward := []utils.Request{}
@@ -26,6 +26,8 @@ func (h *BaseHandler) ReadHandler(c *fiber.Ctx) error {
 	responses := []utils.Response{}
 
 	for _, node := range nodes {
+		log.Printf("Node %v: READ(%v, %v) from node %v", h.NodeManager.LocalId, courseId, studentId, node.Id)
+		
 		if node.Id == h.NodeManager.LocalId {
 			// Read from self
 			r := InternalRead(h.NodeManager, courseId, studentId)
@@ -38,7 +40,7 @@ func (h *BaseHandler) ReadHandler(c *fiber.Ctx) error {
 			reqsToForward,
 			utils.Request{
 				NodeId: node.Id,
-				Url:    fmt.Sprintf(BASE_INTERNAL_READ_URL, node.Port, courseId),
+				Url:    fmt.Sprintf(internal_read_url, node.Port, courseId, studentId),
 			},
 		)
 	}

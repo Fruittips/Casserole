@@ -8,10 +8,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-const BASE_INTERNAL_KILL_URL = "http://localhost:%d/internal/kill/%v"
+const INTERNAL_KILL_ENDPOINT_FSTRING = "/internal/kill"
 
 func (h *BaseHandler) InternalKillHandler(c *fiber.Ctx) error {
-
 	resp := InternalKill(h.NodeManager)
 	if resp.Error == nil && resp.StatusCode == http.StatusOK {
 		return c.JSON(resp.Data)
@@ -20,7 +19,6 @@ func (h *BaseHandler) InternalKillHandler(c *fiber.Ctx) error {
 }
 
 func InternalKill(nm *utils.NodeManager) utils.Response {
-
 	nm.Me().MakeDead()
 
 	if nm.Me().IsDead() {

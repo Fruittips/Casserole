@@ -7,7 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-const BASE_INTERNAL_WRITE_URL = "http://localhost:%d/internal/write/%v"
+const INTERNAL_WRITE_ENDPOINT_FSTRING = "/internal/write/courses/%v/student/%v" // Student part not really used here, keep or remove? if remove need modify WriteHandler
 
 func (h *BaseHandler) InternalWriteHandler(c *fiber.Ctx) error {
 	// failure response

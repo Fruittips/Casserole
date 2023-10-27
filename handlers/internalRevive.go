@@ -9,7 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-const BASE_INTERNAL_REVIVE_URL = "http://localhost:%d/internal/revive/%v"
+const INTERNAL_REVIVE_ENDPOINT_FSTRING = "/internal/revive"
 
 func (h *BaseHandler) InternalReviveHandler(c *fiber.Ctx) error {
 
@@ -34,12 +34,14 @@ func InternalRevive(nm *utils.NodeManager) utils.Response {
 
 	// broadcast to all messages
 	// find all the avail nodes in sysconfig
+	// Internal Check Hinted Handoffs URL: Port
+	internal_checkhh_url := "http://localhost:%d" + INTERNAL_CHECKHH_ENDPOINT_FSTRING
 
 	for id, nodeData := range nm.Nodes {
 
 		req := utils.Request{
 			NodeId: id,
-			Url:    fmt.Sprintf(BASE_INTERNAL_CHECKHH_URL, nodeData.Port, id),
+			Url:    fmt.Sprintf(internal_checkhh_url, nodeData.Port),
 		}
 		res := nm.IntraSystemRequests([]utils.Request{req})
 		for _, r := range res {
