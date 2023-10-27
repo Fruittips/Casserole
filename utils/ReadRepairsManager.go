@@ -104,10 +104,42 @@ func (rrm *ReadRepairsManager) PerformReadRepair(responses []Response) {
 }
 
 func (rrm *ReadRepairsManager) HandleDiscrepancies() {
+	// If there are no discrepancies, there is nothing to repair
+	if len(rrm.Discrepancies) == 0 {
+		fmt.Println("[RRM] No discrepancies to repair")
+		return
+	}
+
+	// Create a list to store write requests
+	writeRequests := []Request{}
+
 	// For each discrepancy, send a write request to the node with the latest data
 	for _, discrepancy := range rrm.Discrepancies {
 		// TODO : send write request to node with latest data
+		writeURL := fmt.Sprintf(WRITE_ENDPOINT_FSTRING, discrepancy.NodeId, discrepancy.CorrectData.CourseId, discrepancy.CorrectData.StudentId)
 
+		// Create a write request
+		writeRequest := Request{
+			NodeId:  discrepancy.NodeId,
+			Url:     writeURL,
+			Payload: &discrepancy.CorrectData,
+		}
+
+		// Add the write request to the list of write requests
+		writeRequests = append(writeRequests, writeRequest)
+	}
+
+	// Send the write requests
+	responses := IntraSystemRequests(writeRequests)
+
+	// Handle the responses
+	for _, response := range responses {
+		if response.Error != nil {
+			fmt.Println("[RRM] Error in repairing node ", response.NodeId, ": ", response.Error)
+			// TODO : consider adding to hinted handoff or another mechanism to repair in the future
+		} else {
+			fmt.Println("[RRM] Successfully repaired node ", response.NodeId, " with data: ", response.Data)
+		}
 	}
 
 	// Clear the discrepancies
