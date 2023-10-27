@@ -1,0 +1,7 @@
+# 
+
+GET http://127.0.0.1:3001/read/course/50.033/student/100000
+
+# 
+
+GET http://127.0.0.1:3000/read/course/02.069/student/100000
