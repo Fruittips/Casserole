@@ -14,15 +14,6 @@ import (
 	"time"
 )
 
-// Routes. If changed, remember to modify handlers/routes.go
-const BASE_URL = "http://localhost:%d"
-const READ_ENDPOINT_FSTRING = "/read/course/%v/student/%v"
-const WRITE_ENDPOINT_FSTRING = "/write/course/%v/student/%v"
-const INTERNAL_READ_ENDPOINT_FSTRING = "/internal/read/course/%v/student/%v"
-const INTERNAL_WRITE_ENDPOINT_FSTRING = "/internal/write/course/%v/student/%v"
-const INTERAL_KILL_ENDPOINT_FSTRING = "/internal/kill"
-const INTERNAL_REVIVE_ENDPOINT_FSTRING = "/internal/revive"
-const INTERNAL_CHECKHH_ENDPOINT_FSTRING = "/internal/checkhh/node/%v"
 
 // Sends an internal read to the given node. Returns a data Row or an error.
 func (nm *NodeManager) SendInternalRead(dstNode Node, courseId string, studentId string) (*Row, error) {

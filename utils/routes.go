@@ -1,12 +1,7 @@
-/**
-  A centralised file for all routes for the handlers
+package utils
 
-NOTE: If this is changed, routes in HttpClient.go need to be changed too!
-*/
-package handlers
-
-//TODO: Check if write endpoints actually need the student parameter
-
+// Routes for all endpoints
+const BASE_URL = "http://localhost:%d"
 const READ_ENDPOINT_FSTRING = "/read/course/%v/student/%v"
 const WRITE_ENDPOINT_FSTRING = "/write/course/%v/student/%v"
 const INTERNAL_READ_ENDPOINT_FSTRING = "/internal/read/course/%v/student/%v"
