@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"runtime"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -57,5 +58,10 @@ func main() {
 
 	app.Get(internal_kill_endpoint_route, baseHandler.InternalKillHandler)
 
-	app.Listen(fmt.Sprintf(":%d", *port))
+	if runtime.GOOS == "windows" {
+		// to disable windows firewall warning -- remove in prod please
+		app.Listen(fmt.Sprintf("127.0.0.1:%d", *port))
+	} else {
+		app.Listen(fmt.Sprintf(":%d", *port))
+	}
 }
