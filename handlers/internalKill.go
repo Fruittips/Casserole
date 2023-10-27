@@ -8,8 +8,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-const INTERNAL_KILL_ENDPOINT_FSTRING = "/internal/kill"
-
 func (h *BaseHandler) InternalKillHandler(c *fiber.Ctx) error {
 	resp := InternalKill(h.NodeManager)
 	if resp.Error == nil && resp.StatusCode == http.StatusOK {

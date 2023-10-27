@@ -7,8 +7,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-const INTERNAL_CHECKHH_ENDPOINT_FSTRING = "/internal/checkhh"
-
 func (h *BaseHandler) InternalCheckHHHandler(c *fiber.Ctx) error {
 	resp := InternalCheckHH(h.NodeManager)
 	if resp.Error == nil && resp.StatusCode == http.StatusOK {

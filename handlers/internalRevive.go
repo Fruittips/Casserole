@@ -9,8 +9,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-const INTERNAL_REVIVE_ENDPOINT_FSTRING = "/internal/revive"
-
 func (h *BaseHandler) InternalReviveHandler(c *fiber.Ctx) error {
 
 	resp := InternalRevive(h.NodeManager)

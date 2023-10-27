@@ -8,8 +8,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-const WRITE_ENDPOINT_FSTRING = "/write/courses/%v/student/%v"
-
 func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
 	// Internal write URL: Port, CourseId, StudentId
 	internal_write_url := "http://localhost:%d" + INTERNAL_WRITE_ENDPOINT_FSTRING

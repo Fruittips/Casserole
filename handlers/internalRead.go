@@ -7,8 +7,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-const INTERNAL_READ_ENDPOINT_FSTRING = "/internal/read/courses/%v/student/%v"
-
 func (h *BaseHandler) InternalReadHandler(c *fiber.Ctx) error {
 	r := new(utils.Request)
 	if err := c.BodyParser(r); err != nil {

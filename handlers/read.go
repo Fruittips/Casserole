@@ -8,8 +8,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-const READ_ENDPOINT_FSTRING = "/read/courses/%v/student/%v"
-
 func (h *BaseHandler) ReadHandler(c *fiber.Ctx) error {
 	// Internal read URL: Port, CourseId, StudentId
 	internal_read_url := "http://localhost:%d" + INTERNAL_READ_ENDPOINT_FSTRING
