@@ -11,7 +11,7 @@ import (
 func (h *BaseHandler) ReadHandler(c *fiber.Ctx) error {
 	// Internal read URL: Port, CourseId, StudentId
 	internal_read_url := "http://localhost:%d" + INTERNAL_READ_ENDPOINT_FSTRING
-	
+
 	courseId := c.Params("courseId")
 	studentId := c.Params("studentId")
 
@@ -25,7 +25,7 @@ func (h *BaseHandler) ReadHandler(c *fiber.Ctx) error {
 
 	for _, node := range nodes {
 		log.Printf("Node %v: READ(%v, %v) from node %v", h.NodeManager.LocalId, courseId, studentId, node.Id)
-		
+
 		if node.Id == h.NodeManager.LocalId {
 			// Read from self
 			r := InternalRead(h.NodeManager, courseId, studentId)
@@ -44,7 +44,7 @@ func (h *BaseHandler) ReadHandler(c *fiber.Ctx) error {
 	}
 
 	latestRecord := utils.Row{}
-	responses = append(responses, h.NodeManager.IntraSystemRequests(reqsToForward)...)
+	responses = append(responses, h.IntraSystemRequests(reqsToForward)...)
 	for _, res := range responses {
 		if res.Error != nil {
 			continue
@@ -56,7 +56,9 @@ func (h *BaseHandler) ReadHandler(c *fiber.Ctx) error {
 		noOfAck++
 	}
 
-	//TODO: run read repair here
+	//TODO: run read repair here [untested]
+	rrm := utils.NewReadRepairsManager(h.NodeManager, courseId, studentId, responses)
+	rrm.PerformReadRepair(responses)
 
 	if noOfAck >= h.NodeManager.Quorum {
 		//return successful response with latest data

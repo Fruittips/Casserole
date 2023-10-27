@@ -1,6 +1,12 @@
 package utils
 
 import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 	"sync"
 )
 
@@ -8,81 +14,135 @@ import (
 // Structs
 //----------------------------------------
 
-type Row struct {
-    StudentId   string
-    CreatedAt   int64
-    DeletedAt   int64
-    StudentName string
-}
-
-type Database struct {
-	TableName    string           `json:"TableName"`
-	PartitionKey int              `json:"PartitionKey"`
-	Partitions   map[string][]Row `json:"Partitions"`
-}
-
-type ReplicaData struct {
-	filepath string
-	data Database
-}
-
 type RowDiscrepancy struct {
-	ReplicaData []ReplicaData
-	CurrentPartition int
-	CurrData []Row
+	NodeId      NodeId
+	CurrData    Row
 	CorrectData Row
 }
 
-
 type ReadRepairsManager struct {
-	filepaths []string
-	mux      sync.Mutex
-	Datas    []ReplicaData
-	NewDatas  []ReplicaData
+	mux           sync.Mutex
+	Discrepancies []RowDiscrepancy
+	Responses     []Response
 }
 
-func (rrm ReadRepairsManager) String() string {
-	builder := &strings.Builder{}
+//----------------------------------------
+// Print status??
+//----------------------------------------
 
-	// Print basic fields (filepaths to compare)
-	fmt.Fprintf(builder, "[RRM] Filepaths being compared: %v\n", rrm.filepaths)
+// func (rrm ReadRepairsManager) String() string {
 
-	return builder.String()
+// }
+
+//----------------------------------------
+// Constructor
+//----------------------------------------
+
+func NewReadRepairsManager(responses []Response) *ReadRepairsManager {
+	return &ReadRepairsManager{
+		Discrepancies: make([]RowDiscrepancy, 0),
+		Responses:     responses,
+	}
 }
 
-func NewReadRepairsManager(filepaths []string) *ReadRepairsManager {
-	rrm := ReadRepairsManager {
-		filepaths: []string{},
-		Datas: []ReplicaData{},
+//----------------------------------------
+// Methods
+//----------------------------------------
+func (rrm *ReadRepairsManager) PerformReadRepair(responses []Response) {
+	// If there are no responses, there is nothing to repair
+	if len(responses) == 0 {
+		return
 	}
 
+	var latestData *Row
+	var latestTimestamp int64
+	var validResponses int
 
-	// For each filepath given:
-	for _, path := range filepaths {
-		// validation : absolute path, readable file
-		if !filepath.IsAbs(path) {
-			panic(errors.New(fmt.Sprintf("Expected absolute path, was given %v", path)))
-		}
-		file, err := os.ReadFile(path)
-		if err != nil {
-			panic(errors.New(fmt.Sprintf("Could not read file %v, error: %v", path, err)))
-		}
-
-		// unmarshal JSON file
-		var replica ReplicaData
-		err = json.Unmarshal(file, &replica.data)
-		if err != nil {
-			panic(errors.New(fmt.Sprintf("Could not unmarshal JSON file %v, error: %v", path, err)))
+	// Identify the latest data
+	for _, response := range responses {
+		// If the response is not valid, skip it
+		if response.Error != nil {
+			// TODO : log error in response
+			// TODO : sent to repair in for loop below, not sure if should
+			continue
 		}
 
-		// populate ReadRepairsManager's fields per replica
-		rrm.filepaths = append(rrm.filepaths, path)
-		rrm.Datas = append(rrm.Datas, replica)
+		// handle or log nil data
+		if response.Data == nil {
+			// TODO : log error in response
+			// TODO : sent to repair in for loop below, not sure if should
+			continue
+		}
+
+		// If the response is valid, increment the number of valid responses
+		validResponses++
+
+		// If the response is the latest data, update the latest data
+		if response.Data.CreatedAt > latestTimestamp {
+			latestTimestamp = response.Data.CreatedAt
+			latestData = response.Data
+		}
 	}
 
-	fmt.Println("[RRM] Initialized ReadRepairsManager with filepaths: ", rrm.filepaths)
+	// if there are no valid responses, there is nothing to repair
+	if validResponses == 0 {
+		return
+	}
 
-	return rrm
+	// For each response, check if it matches the latest data
+	for _, response := range responses {
+		if response.Data.CreatedAt != latestTimestamp || response.Data == nil || response.Error != nil {
+			discrepancy := RowDiscrepancy{
+				NodeId:      response.NodeId,
+				CurrData:    *response.Data,
+				CorrectData: *latestData,
+			}
+			rrm.Discrepancies = append(rrm.Discrepancies, discrepancy)
+		}
+	}
+
+	// Handle the discrepancies
+	rrm.HandleDiscrepancies()
 }
 
+func (rrm *ReadRepairsManager) HandleDiscrepancies() {
+	// If there are no discrepancies, there is nothing to repair
+	if len(rrm.Discrepancies) == 0 {
+		fmt.Println("[RRM] No discrepancies to repair")
+		return
+	}
 
+	// Create a list to store write requests
+	writeRequests := []Request{}
+
+	// For each discrepancy, send a write request to the node with the latest data
+	for _, discrepancy := range rrm.Discrepancies {
+		writeURL := fmt.Sprintf(WRITE_ENDPOINT_FSTRING, discrepancy.NodeId, discrepancy.CorrectData.CourseId, discrepancy.CorrectData.StudentId)
+
+		// Create a write request
+		writeRequest := Request{
+			NodeId:  discrepancy.NodeId,
+			Url:     writeURL,
+			Payload: &discrepancy.CorrectData,
+		}
+
+		// Add the write request to the list of write requests
+		writeRequests = append(writeRequests, writeRequest)
+	}
+
+	// Send the write requests
+	responses := IntraSystemRequests(writeRequests)
+
+	// Handle the responses
+	for _, response := range responses {
+		if response.Error != nil {
+			fmt.Println("[RRM] Error in repairing node ", response.NodeId, ": ", response.Error)
+			// TODO : consider adding to hinted handoff or another mechanism to repair in the future
+		} else {
+			fmt.Println("[RRM] Successfully repaired node ", response.NodeId, " with data: ", response.Data)
+		}
+	}
+
+	// Clear the discrepancies
+	rrm.Discrepancies = []RowDiscrepancy{}
+}
