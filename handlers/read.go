@@ -19,7 +19,6 @@ func (h *BaseHandler) ReadHandler(c *fiber.Ctx) error {
 	responses := make(chan *utils.Row, len(nodes))
 	for _, node := range nodes {
 		log.Printf("Node %v: READ(%v, %v) from node %v", h.NodeManager.LocalId, courseId, studentId, node.Id)
-		
 		// Query self if self is one of the nodes
 		if node.Id == h.NodeManager.LocalId {
 			responses <- internalRead(h.NodeManager, courseId, studentId)
@@ -57,8 +56,9 @@ func (h *BaseHandler) ReadHandler(c *fiber.Ctx) error {
 			latestRecord = res
 		}
 	}
-
-	// TODO: Read Repair
+	//TODO: run read repair here [untested]
+	//rrm := utils.NewReadRepairsManager(h.NodeManager, courseId, studentId, responses)
+	//rrm.PerformReadRepair(responses)
 
 	// Only return successful response if with quorum
 	if ackCount >= h.NodeManager.Quorum {
