@@ -1,6 +1,6 @@
 package utils
 
-import {
+import (
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -8,17 +8,17 @@ import {
 	"path/filepath"
 	"strings"
 	"sync"
-}
+)
 
 //----------------------------------------
 // Structs
 //----------------------------------------
 
 type Row struct {
-    StudentId   string
-    CreatedAt   int64
-    DeletedAt   int64
-    StudentName string
+	StudentId   string
+	CreatedAt   int64
+	DeletedAt   int64
+	StudentName string
 }
 
 type Database struct {
@@ -29,23 +29,26 @@ type Database struct {
 
 type ReplicaData struct {
 	filepath string
-	data Database
+	data     Database
 }
 
 type RowDiscrepancy struct {
-	ReplicaData []ReplicaData
+	ReplicaData      []ReplicaData
 	CurrentPartition int
-	CurrData []Row
-	CorrectData Row
+	CurrData         []Row
+	CorrectData      Row
 }
-
 
 type ReadRepairsManager struct {
 	filepaths []string
-	mux      sync.Mutex
-	Datas    []ReplicaData
+	mux       sync.Mutex
+	Datas     []ReplicaData
 	NewDatas  []ReplicaData
 }
+
+//----------------------------------------
+// Print status??
+//----------------------------------------
 
 func (rrm ReadRepairsManager) String() string {
 	builder := &strings.Builder{}
@@ -56,12 +59,15 @@ func (rrm ReadRepairsManager) String() string {
 	return builder.String()
 }
 
-func NewReadRepairsManager(filepaths []string) *ReadRepairsManager {
-	rrm := ReadRepairsManager {
-		filepaths: []string{},
-		Datas: []ReplicaData{},
-	}
+//----------------------------------------
+// Constructor
+//----------------------------------------
 
+func NewReadRepairsManager(filepaths []string) *ReadRepairsManager {
+	rrm := ReadRepairsManager{
+		filepaths: []string{},
+		Datas:     []ReplicaData{},
+	}
 
 	// For each filepath given:
 	for _, path := range filepaths {
@@ -88,7 +94,9 @@ func NewReadRepairsManager(filepaths []string) *ReadRepairsManager {
 
 	fmt.Println("[RRM] Initialized ReadRepairsManager with filepaths: ", rrm.filepaths)
 
-	return rrm
+	return rrm, nil
 }
 
-
+//----------------------------------------
+// Methods
+//----------------------------------------
