@@ -4,56 +4,59 @@ import (
 	"casserole/utils"
 	"errors"
 	"fmt"
-	"net/http"
+	"log"
+	"sync"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func (h *BaseHandler) InternalReviveHandler(c *fiber.Ctx) error {
 
-	resp := InternalRevive(h.NodeManager)
-	if resp.Error == nil && resp.StatusCode == http.StatusOK {
-		return c.JSON(resp.Data)
+	err := internalRevive(h.NodeManager)
+	if err != nil {
+		return c.SendStatus(500)
 	}
-	return c.SendStatus(resp.StatusCode)
+	return c.SendStatus(200)
 }
 
-func InternalRevive(nm *utils.NodeManager) utils.Response {
-
+func internalRevive(nm *utils.NodeManager) error {
+	log.Printf("Node %v revived.", nm.LocalId)
+	
 	nm.Me().MakeAlive()
 
-	if !nm.Me().IsDead() {
-		return utils.Response{
-			Error:      errors.New("isDead was not changed to false"),
-			StatusCode: 500,
-			NodeId:     nm.LocalId,
-		}
+	if nm.Me().IsDead() {
+		return errors.New("isDead not changed to false")
 	}
 
-	// broadcast to all messages
-	// find all the avail nodes in sysconfig
-	// Internal Check Hinted Handoffs URL: Port
-	internal_checkhh_url := "http://localhost:%d" + INTERNAL_CHECKHH_ENDPOINT_FSTRING
-
-	for id, nodeData := range nm.Nodes {
-
-		req := utils.Request{
-			NodeId: id,
-			Url:    fmt.Sprintf(internal_checkhh_url, nodeData.Port),
+	// Request all other nodes for hintedhandoffs
+	var reqWg sync.WaitGroup
+	responses := make(chan error, len(nm.Nodes) - 1) // Ignore self
+	for _, node := range nm.Nodes {
+		if node.Id == nm.LocalId {
+			continue
 		}
-		res := nm.IntraSystemRequests([]utils.Request{req})
-		for _, r := range res {
-			if r.StatusCode == 500 {
-				return utils.Response{
-					StatusCode: 500,
-					NodeId:     nm.LocalId,
-				}
+
+		reqWg.Add(1)
+		go func(n *utils.Node) {
+			defer reqWg.Done()
+			err := nm.RequestForHHs(*n)
+			if err != nil {
+				responses <- errors.New(fmt.Sprintf("Node %v REQUEST HH from node %v Error: %v", nm.LocalId, n.Id, err))
+				return
 			}
-		}
+			responses <- nil
+		}(node)
 	}
 
-	return utils.Response{
-		StatusCode: 200,
-		NodeId:     nm.LocalId,
+	reqWg.Wait()
+	close(responses)
+
+	// TODO: Any other or more specific error condition?
+	for err := range responses {
+		if err != nil {
+			return err
+		}
 	}
+	
+	return nil
 }

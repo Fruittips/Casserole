@@ -1,113 +1,100 @@
+/**
+Defines HTTP interactions between nodes.
+*/
+
 package utils
 
 import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
-	"sync"
 	"time"
 )
 
-type HTTPResponse struct {
-	Data         *Row   `json:"data"`
-	ErrorMessage string `json:"errorMessage"`
-}
+// Routes. If changed, remember to modify handlers/routes.go
+const BASE_URL = "http://localhost:%d"
+const READ_ENDPOINT_FSTRING = "/read/course/%v/student/%v"
+const WRITE_ENDPOINT_FSTRING = "/write/course/%v/student/%v"
+const INTERNAL_READ_ENDPOINT_FSTRING = "/internal/read/course/%v/student/%v"
+const INTERNAL_WRITE_ENDPOINT_FSTRING = "/internal/write/course/%v/student/%v"
+const INTERAL_KILL_ENDPOINT_FSTRING = "/internal/kill"
+const INTERNAL_REVIVE_ENDPOINT_FSTRING = "/internal/revive"
+const INTERNAL_CHECKHH_ENDPOINT_FSTRING = "/internal/checkhh/node/%v"
 
-type RequestType int
-
-const (
-	Read  RequestType = iota // 0 for read request
-	Write                    // 1 for write request
-)
-
-var RequestTypeStr = map[RequestType]string{
-	Read:  "read",
-	Write: "write",
-}
-
-// Intra-system request
-type Request struct {
-	NodeId    NodeId
-	Url       string
-	Payload   *Row
-	CourseId  string
-	StudentId string
-}
-
-// Intra-system response
-type Response struct {
-	NodeId     NodeId
-	StatusCode int
-	Data       *Row
-	Error      error
-}
-
-func (nm *NodeManager) IntraSystemRequests(requests []Request) []Response {
-	var wg sync.WaitGroup
-	respC := make(chan Response, len(requests))
-
-	for _, req := range requests {
-		wg.Add(1)
-		go nm.nonBlockingRequest(req, &wg, &respC)
-	}
-
-	wg.Wait()
-	close(respC)
-
-	var results []Response
-	for resp := range respC {
-		results = append(results, resp)
-	}
-
-	return results
-}
-
-func (nm *NodeManager) nonBlockingRequest(req Request, wg *sync.WaitGroup, ch *chan Response) {
-	defer wg.Done()
-
+// Sends an internal read to the given node. Returns a data Row or an error.
+func (nm *NodeManager) SendInternalRead(dstNode Node, courseId string, studentId string) (*Row, error) {
 	timeout := time.Duration(nm.GetConfig().Timeout)
-	client := &http.Client{
-		Timeout: timeout * time.Second,
-	}
+	client := &http.Client{Timeout: timeout * time.Second} //TODO: should second be already in there?
 
-	var err error
-	var resp *http.Response
-	if req.Payload != nil {
-		newStudentJson, err := json.Marshal(req)
-		if err == nil {
-			resp, err = client.Post(req.Url, "application/json", bytes.NewBuffer(newStudentJson))
-		}
-	} else {
-		resp, err = client.Get(req.Url)
-	}
+	// Generate the URL of the node: Target port, Read-from CourseID, Read-from StudentID
+	url := fmt.Sprintf(BASE_URL + INTERNAL_READ_ENDPOINT_FSTRING, dstNode.Port, courseId, studentId)
 
+	// Send the GET request
+	resp, err := client.Get(url)
 	if err != nil {
-		*ch <- Response{NodeId: req.NodeId, Error: err}
-		return
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New(fmt.Sprintf("HTTP Error: %v", resp.Status))
 	}
 
+	// Parse the response
 	defer resp.Body.Close()
-
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		*ch <- Response{NodeId: req.NodeId, StatusCode: resp.StatusCode, Error: err}
-		return
+		return nil, err
 	}
 
-	var httpResponse HTTPResponse
-	err = json.Unmarshal(body, &httpResponse)
+	// Convert response body into HTTPResponse, then into Row
+	var row Row
+	err = json.Unmarshal(body, &row)
 	if err != nil {
-		*ch <- Response{NodeId: req.NodeId, StatusCode: resp.StatusCode, Error: err}
-		return
+		return nil, err
 	}
 
+	return &row, nil
+}
+
+// Sends an internal write to the given node.
+func (nm *NodeManager) SendInternalWrite(dstNode Node, courseId string, data Row) error {
+	timeout := time.Duration(nm.GetConfig().Timeout)
+	client := &http.Client{Timeout: timeout * time.Second} //TODO: should second be already in there?
+
+	// Generate the URL of the node: Target port, Write-to CourseID, Write-to StudentID
+	url := fmt.Sprintf(BASE_URL + INTERNAL_WRITE_ENDPOINT_FSTRING, dstNode.Port, courseId, data.StudentId)
+
+	// Send the POST request
+	newRowJSON, err := json.Marshal(data)
+	resp, err := client.Post(url, "application/json", bytes.NewBuffer(newRowJSON))
+	if err != nil {
+		return err
+	}
 	if resp.StatusCode != http.StatusOK {
-		*ch <- Response{NodeId: req.NodeId, StatusCode: resp.StatusCode, Error: errors.New(httpResponse.ErrorMessage)}
-		return
+		return errors.New(fmt.Sprintf("HTTP Error: %v", resp.Status))
 	}
 
-	*ch <- Response{NodeId: req.NodeId, StatusCode: resp.StatusCode, Data: httpResponse.Data}
-	return
+	return nil	
+}
+
+// Sends an internal hinted handoffs request to the given node. This triggers the given node to send any necessary HHs with internal write requests.
+func (nm *NodeManager) RequestForHHs(dstNode Node) error {
+	timeout := time.Duration(nm.GetConfig().Timeout)
+	client := &http.Client{Timeout: timeout * time.Second} //TODO: should second be already in there?
+
+	// Generate the URL of the node: Target port, my own ID (so target knows who wants the hhs)
+	url := fmt.Sprintf(BASE_URL + INTERNAL_CHECKHH_ENDPOINT_FSTRING, dstNode.Port, nm.LocalId)
+
+	// Send the GET request (TODO: if handler is modified, this may need to change too)
+	resp, err := client.Get(url)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return errors.New(fmt.Sprintf("HTTP Error: %v", resp.Status))
+	}
+
+	return nil
 }

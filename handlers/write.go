@@ -2,16 +2,13 @@ package handlers
 
 import (
 	"casserole/utils"
-	"fmt"
 	"log"
+	"sync"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
-	// Internal write URL: Port, CourseId, StudentId
-	internal_write_url := "http://localhost:%d" + INTERNAL_WRITE_ENDPOINT_FSTRING
-	
 	courseId := c.Params("courseId")
 
 	newStudent := utils.Row{}
@@ -20,60 +17,57 @@ func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
 		return err
 	}
 
-	/* get list of node ids to forward request to from CH */
+	// Get list of nodes from CHT
 	nodes := h.NodeManager.GetNodesForKey(courseId)
+	var reqWg sync.WaitGroup
 
-	noOfAck := 0
-	reqsToForward := []utils.Request{}
-
+	responses := make(chan bool, len(nodes))
 	for _, node := range nodes {
 		log.Printf("Node %v: WRITE(%v, %v) to node %v with data: %v", h.NodeManager.LocalId, courseId, newStudent.StudentId, node.Id, newStudent)
+
+		// Query self if self is one of hte nodes
 		if node.Id == h.NodeManager.LocalId {
-			err := h.NodeManager.DatabaseManager.AppendRow(courseId, newStudent)
+			err := internalWrite(h.NodeManager, courseId, newStudent)
 			if err != nil {
-				noOfAck++
+				log.Printf("Node %v WRITE to node %v Error: %v", h.NodeManager.LocalId, node.Id, err)
+			} else {
+				responses <- true
 			}
 			continue
 		}
 
-		reqsToForward = append(
-			reqsToForward,
-			utils.Request{
-				NodeId:  node.Id,
-				Url:     fmt.Sprintf(internal_write_url, node.Port, courseId, newStudent.StudentId),
-				Payload: &newStudent,
-			},
-		)
+		// Otherwise, shoot a concurrent internal write
+		reqWg.Add(1)
+		go func(n *utils.Node) {
+			defer reqWg.Done()
+			err := h.NodeManager.SendInternalWrite(*n, courseId, newStudent)
+			if err != nil {
+				log.Printf("Node %v WRITE to node %v Error: %v", h.NodeManager.LocalId, n.Id, err)
+				return
+			}
+			responses <- true
+		}(node)
 	}
 
-	responses := h.NodeManager.IntraSystemRequests(reqsToForward)
-	for _, res := range responses {
-		if res.Error != nil {
-			continue
-		}
+	reqWg.Wait()
+	close(responses)
 
-		//TODO: get the last written value
-		noOfAck++
+	// Check number of acks
+	ackCount := len(responses)
+
+	// If failed to hit QUORUM
+	if ackCount < h.NodeManager.Quorum {
+		// TODO: Write to hinted handoff
+		return c.SendStatus(500)
 	}
 
-	// if failed to hit QUORUM
-	if noOfAck < h.NodeManager.Quorum {
-		/* TODO: write to hinted handoff */
-		//return with error response 500
+	// If hit QUORUM:
+	// Either all nodes responded, or some nodes responded
+	if ackCount == len(nodes) {
+		return c.SendStatus(200)
+	} else {
+		// TODO: Hinted Handoffs
+
+		return c.SendStatus(200)
 	}
-
-	/* if hit quorum
-	1. all nodes respond
-	2. some nodes respond
-	*/
-
-	//if all nodes respond
-	if noOfAck == len(nodes) {
-		//return successful response with data
-	}
-
-	//some nodes respond
-	//hinted handoff and successful response
-
-	return c.SendStatus(500)
 }

@@ -3,33 +3,22 @@ package handlers
 import (
 	"casserole/utils"
 	"errors"
-	"net/http"
-
 	"github.com/gofiber/fiber/v2"
 )
 
 func (h *BaseHandler) InternalKillHandler(c *fiber.Ctx) error {
-	resp := InternalKill(h.NodeManager)
-	if resp.Error == nil && resp.StatusCode == http.StatusOK {
-		return c.JSON(resp.Data)
+	err := internalKill(h.NodeManager)
+	if err != nil {
+		return c.SendStatus(500)
 	}
-	return c.SendStatus(resp.StatusCode)
+	return c.SendStatus(200)
 }
 
-func InternalKill(nm *utils.NodeManager) utils.Response {
+func internalKill(nm *utils.NodeManager) error {
 	nm.Me().MakeDead()
 
-	if nm.Me().IsDead() {
-		return utils.Response{
-			Error:      errors.New("isDead was not changed to true"),
-			StatusCode: 200,
-			NodeId:     nm.LocalId,
-		}
+	if !nm.Me().IsDead() {
+		return errors.New("isDead not changed to true")
 	}
-
-	return utils.Response{
-		StatusCode: 500,
-		NodeId:     nm.LocalId,
-	}
-
+	return nil
 }

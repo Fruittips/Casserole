@@ -1,18 +1,17 @@
 package utils
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 )
 
-//----------------------------------------
-// Structs
-//----------------------------------------
+type ReplicaData struct {
+	filepath string
+	data     Database
+}
 
 type RowDiscrepancy struct {
 	NodeId      NodeId
@@ -45,26 +44,24 @@ func NewReadRepairsManager(responses []Response) *ReadRepairsManager {
 	}
 }
 
-//----------------------------------------
+// ----------------------------------------
 // Methods
-//----------------------------------------
+// ----------------------------------------
 func (rrm *ReadRepairsManager) PerformReadRepair(responses []Response) {
 	// If there are no responses, there is nothing to repair
 	if len(responses) == 0 {
 		return
 	}
 
-	var latestData *Row
-	var latestTimestamp int64
-	var validResponses int
-
-	// Identify the latest data
-	for _, response := range responses {
-		// If the response is not valid, skip it
-		if response.Error != nil {
-			// TODO : log error in response
-			// TODO : sent to repair in for loop below, not sure if should
-			continue
+	// For each filepath given:
+	for _, path := range filepaths {
+		// validation : absolute path, readable file
+		if !filepath.IsAbs(path) {
+			panic(errors.New(fmt.Sprintf("Expected absolute path, was given %v", path)))
+		}
+		file, err := os.ReadFile(path)
+		if err != nil {
+			panic(errors.New(fmt.Sprintf("Could not read file %v, error: %v", path, err)))
 		}
 
 		// handle or log nil data
@@ -89,20 +86,7 @@ func (rrm *ReadRepairsManager) PerformReadRepair(responses []Response) {
 		return
 	}
 
-	// For each response, check if it matches the latest data
-	for _, response := range responses {
-		if response.Data.CreatedAt != latestTimestamp || response.Data == nil || response.Error != nil {
-			discrepancy := RowDiscrepancy{
-				NodeId:      response.NodeId,
-				CurrData:    *response.Data,
-				CorrectData: *latestData,
-			}
-			rrm.Discrepancies = append(rrm.Discrepancies, discrepancy)
-		}
-	}
-
-	// Handle the discrepancies
-	rrm.HandleDiscrepancies()
+	return &rrm
 }
 
 func (rrm *ReadRepairsManager) HandleDiscrepancies() {
