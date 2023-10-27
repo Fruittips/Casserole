@@ -7,18 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type AtomicDbMessage struct {
-	Data      []string `json: "Data"`
-	Timestamp int64    `json: "Timestamp"`
-}
-
-type Data struct {
-	TableName string                     `json: "TableName"`
-	Columns   []string                   `json: "Columns"`
-	Row       map[string]AtomicDbMessage `json: "Row"`
-}
-
-const BASE_INTERNAL_READ_URL = "http://localhost:%d/internal/read/%v"
+const INTERNAL_READ_ENDPOINT_FSTRING = "/internal/read/courses/%v/student/%v"
 
 func (h *BaseHandler) InternalReadHandler(c *fiber.Ctx) error {
 	r := new(utils.Request)

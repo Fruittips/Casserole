@@ -7,10 +7,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-const BASE_INTERNAL_CHECKHH_URL = "http://localhost:%d/internal/checkhh/%v"
+const INTERNAL_CHECKHH_ENDPOINT_FSTRING = "/internal/checkhh"
 
 func (h *BaseHandler) InternalCheckHHHandler(c *fiber.Ctx) error {
-
 	resp := InternalCheckHH(h.NodeManager)
 	if resp.Error == nil && resp.StatusCode == http.StatusOK {
 		return c.JSON(resp.Data)
@@ -19,7 +18,6 @@ func (h *BaseHandler) InternalCheckHHHandler(c *fiber.Ctx) error {
 }
 
 func InternalCheckHH(nm *utils.NodeManager) utils.Response {
-
 	// for logging
 	for id, outerrow := range nm.HintedHandoffManager.Data.Rows {
 		if string(nm.Me().Port) == id {
