@@ -8,9 +8,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-const BASE_WRITE_URL = "http://localhost:%d/write/%v"
+const WRITE_ENDPOINT_FSTRING = "/write/courses/%v/student/%v"
 
 func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
+	// Internal write URL: Port, CourseId, StudentId
+	internal_write_url := "http://localhost:%d" + INTERNAL_WRITE_ENDPOINT_FSTRING
+	
 	courseId := c.Params("courseId")
 
 	newStudent := utils.Row{}
@@ -21,15 +24,12 @@ func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
 
 	/* get list of node ids to forward request to from CH */
 	nodes := h.NodeManager.GetNodesForKey(courseId)
-	// for logging
-	for _, node := range nodes {
-		log.Printf("Writing %v to node %v", courseId, node.Id)
-	}
 
 	noOfAck := 0
 	reqsToForward := []utils.Request{}
 
 	for _, node := range nodes {
+		log.Printf("Node %v: WRITE(%v, %v) to node %v with data: %v", h.NodeManager.LocalId, courseId, newStudent.StudentId, node.Id, newStudent)
 		if node.Id == h.NodeManager.LocalId {
 			err := h.NodeManager.DatabaseManager.AppendRow(courseId, newStudent)
 			if err != nil {
@@ -42,7 +42,7 @@ func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
 			reqsToForward,
 			utils.Request{
 				NodeId:  node.Id,
-				Url:     fmt.Sprintf(BASE_WRITE_URL, node.Port, courseId),
+				Url:     fmt.Sprintf(internal_write_url, node.Port, courseId, newStudent.StudentId),
 				Payload: &newStudent,
 			},
 		)
