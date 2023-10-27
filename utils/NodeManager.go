@@ -22,7 +22,6 @@ type Node struct {
 }
 
 func (n Node) IsDead() bool {
-	// TODO: replace with proper way -- why can't we get rid of deadnode and just use ctrl-c?
 	return n.isDead
 }
 
@@ -49,7 +48,7 @@ type NodeManager struct {
 	Nodes                map[NodeId](*Node)
 	DatabaseManager      *DatabaseManager
 	HintedHandoffManager *HintedHandoffManager
-	// ReadRepairsManager   *ReadRepairsManager
+	//ReadRepairsManager   *ReadRepairsManager
 	cht       *cht.CHashTable
 	sysConfig *sysConfig
 }
@@ -64,11 +63,10 @@ func NewNodeManager(port int) *NodeManager {
 	if err != nil {
 		log.Fatalf("Error initialising DatabaseManager: %v", err)
 	}
-	//TODO: Uncomment once hhMgr ready
-	// hhPath, err := filepath.Abs(fmt.Sprintf(HH_FILE_PATH, port))
-	// if err != nil {
-	// 	log.Fatalf("Error initialising HintedHandoffManager: %v", err)
-	// }
+	hhPath, err := filepath.Abs(fmt.Sprintf(HH_FILE_PATH, port))
+	if err != nil {
+		log.Fatalf("Error initialising HintedHandoffManager: %v", err)
+	}
 
 	// Identify ID of this node, generate nodeList for cht, and generate node map
 	sysConfig, err := loadConfig(configPath)
@@ -105,19 +103,18 @@ func NewNodeManager(port int) *NodeManager {
 		log.Fatalf("Error loading DatabaseManager: %v", err)
 	}
 
-	//TODO: Uncomment once hhMgr ready
 	// Load HintedHandoffManager
-	// hhMgr, err := newHintedHandoffManager(hhPath)
-	// if err != nil {
-	// 	log.Fatalf("Error loading HintedHandoffManager: %v", err)
-	// }
+	hhMgr, err := newHintedHandoffManager(hhPath)
+	if err != nil {
+		log.Fatalf("Error loading HintedHandoffManager: %v", err)
+	}
 
 	return &NodeManager{
 		LocalId:              NodeId(myId),
 		Quorum:               sysConfig.RF/2 + 1,
 		Nodes:                nodeMap,
 		DatabaseManager:      dbMgr,
-		HintedHandoffManager: nil, // TODO: Replace with hhMgr once ready
+		HintedHandoffManager: hhMgr,
 		cht:                  cht.NewCHashTable(nodeLs),
 		sysConfig:            sysConfig,
 	}

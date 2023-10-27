@@ -29,6 +29,13 @@ func (r Row) String() string {
 	return fmt.Sprintf("StudentId: %s, CreatedAt: %d, DeletedAt: %d, StudentName: %s", r.StudentId, r.CreatedAt, r.DeletedAt, r.StudentName)
 }
 
+func (r Row) Equal(other Row) bool {
+	return (r.StudentId == other.StudentId) &&
+		(r.CreatedAt == other.CreatedAt) &&
+		(r.DeletedAt == other.DeletedAt) &&
+		(r.StudentName == other.StudentName)
+}
+
 func (d Database) String() string {
 	builder := &strings.Builder{}
 
