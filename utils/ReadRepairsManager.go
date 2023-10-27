@@ -23,6 +23,7 @@ type RowDiscrepancy struct {
 type ReadRepairsManager struct {
 	mux           sync.Mutex
 	Discrepancies []RowDiscrepancy
+	Responses     []Response
 }
 
 //----------------------------------------
@@ -37,9 +38,10 @@ type ReadRepairsManager struct {
 // Constructor
 //----------------------------------------
 
-func NewReadRepairsManager(filepaths []string, responses []Response) *ReadRepairsManager {
+func NewReadRepairsManager(responses []Response) *ReadRepairsManager {
 	return &ReadRepairsManager{
 		Discrepancies: make([]RowDiscrepancy, 0),
+		Responses:     responses,
 	}
 }
 
@@ -115,7 +117,6 @@ func (rrm *ReadRepairsManager) HandleDiscrepancies() {
 
 	// For each discrepancy, send a write request to the node with the latest data
 	for _, discrepancy := range rrm.Discrepancies {
-		// TODO : send write request to node with latest data
 		writeURL := fmt.Sprintf(WRITE_ENDPOINT_FSTRING, discrepancy.NodeId, discrepancy.CorrectData.CourseId, discrepancy.CorrectData.StudentId)
 
 		// Create a write request

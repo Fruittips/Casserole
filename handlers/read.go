@@ -58,7 +58,9 @@ func (h *BaseHandler) ReadHandler(c *fiber.Ctx) error {
 		noOfAck++
 	}
 
-	//TODO: run read repair here
+	//TODO: run read repair here [untested]
+	rrm := utils.NewReadRepairsManager(h.NodeManager, courseId, studentId, responses)
+	rrm.PerformReadRepair(responses)
 
 	if noOfAck >= h.NodeManager.Quorum {
 		//return successful response with latest data
