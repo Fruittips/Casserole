@@ -2,37 +2,25 @@ package handlers
 
 import (
 	"casserole/utils"
-	"net/http"
-
 	"github.com/gofiber/fiber/v2"
 )
 
 func (h *BaseHandler) InternalReadHandler(c *fiber.Ctx) error {
-	r := new(utils.Request)
-	if err := c.BodyParser(r); err != nil {
-		return err
-	}
+	// Parse parameters
+	courseId := c.Params("courseId")
+	studentId := c.Params("studentId")
 
-	resp := InternalRead(h.NodeManager, r.CourseId, r.StudentId)
-	if resp.Error == nil && resp.StatusCode == http.StatusOK {
-		return c.JSON(resp.Data)
+	data := internalRead(h.NodeManager, courseId, studentId)
+	if data == nil {
+		return c.SendStatus(404)
 	}
-	return c.SendStatus(resp.StatusCode)
+	return c.JSON(data)
 }
 
-func InternalRead(nm *utils.NodeManager, courseId string, studentId string) utils.Response {
+func internalRead(nm *utils.NodeManager, courseId, studentId string) *utils.Row {
 	data, err := nm.DatabaseManager.GetRowByPartitionKey(courseId, studentId)
 	if err != nil {
-		return utils.Response{
-			Error:      err,
-			StatusCode: 500,
-			NodeId:     nm.LocalId,
-		}
+		return nil
 	}
-
-	return utils.Response{
-		Data:       data,
-		StatusCode: 200,
-		NodeId:     nm.LocalId,
-	}
+	return data
 }

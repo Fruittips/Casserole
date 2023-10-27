@@ -2,68 +2,67 @@ package handlers
 
 import (
 	"casserole/utils"
-	"fmt"
 	"log"
+	"sync"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func (h *BaseHandler) ReadHandler(c *fiber.Ctx) error {
-	// Internal read URL: Port, CourseId, StudentId
-	internal_read_url := "http://localhost:%d" + INTERNAL_READ_ENDPOINT_FSTRING
-	
 	courseId := c.Params("courseId")
 	studentId := c.Params("studentId")
 
-	/* get list of node ids to forward request to from CH */
+	// Get list of nodes from CHT
 	nodes := h.NodeManager.GetNodesForKey(courseId)
+	var reqWg sync.WaitGroup
 
-	noOfAck := 0
-	reqsToForward := []utils.Request{}
-
-	responses := []utils.Response{}
-
+	responses := make(chan *utils.Row, len(nodes))
 	for _, node := range nodes {
 		log.Printf("Node %v: READ(%v, %v) from node %v", h.NodeManager.LocalId, courseId, studentId, node.Id)
 		
+		// Query self if self is one of the nodes
 		if node.Id == h.NodeManager.LocalId {
-			// Read from self
-			r := InternalRead(h.NodeManager, courseId, studentId)
-			responses = append(responses, r)
-			noOfAck++
+			responses <- internalRead(h.NodeManager, courseId, studentId)
 			continue
 		}
 
-		reqsToForward = append(
-			reqsToForward,
-			utils.Request{
-				NodeId: node.Id,
-				Url:    fmt.Sprintf(internal_read_url, node.Port, courseId, studentId),
-			},
-		)
+		// Otherwise, shoot a concurrent internal read
+		reqWg.Add(1)
+		go func(n *utils.Node) {
+			defer reqWg.Done()
+			row, err := h.NodeManager.SendInternalRead(*n, courseId, studentId)
+			if err != nil {
+				log.Printf("Node %v READ from node %v Error: %v", h.NodeManager.LocalId, n.Id, err)
+				return
+			}
+			responses <- row
+		}(node)
 	}
 
-	latestRecord := utils.Row{}
-	responses = append(responses, h.NodeManager.IntraSystemRequests(reqsToForward)...)
-	for _, res := range responses {
-		if res.Error != nil {
+	reqWg.Wait()
+	close(responses)
+
+	// Get latest record from buffered channel
+	ackCount := 0
+	var latestRecord *utils.Row
+	for res := range responses {
+		ackCount++
+		if latestRecord == nil {
+			latestRecord = res
 			continue
 		}
 
-		if res.Data.CreatedAt > latestRecord.CreatedAt || latestRecord == (utils.Row{}) {
-			latestRecord = *res.Data
+		// Only change latest if it's actually later
+		if res.CreatedAt > latestRecord.CreatedAt {
+			latestRecord = res
 		}
-		noOfAck++
 	}
 
-	//TODO: run read repair here
+	// TODO: Read Repair
 
-	if noOfAck >= h.NodeManager.Quorum {
-		//return successful response with latest data
+	// Only return successful response if with quorum
+	if ackCount >= h.NodeManager.Quorum {
 		return c.JSON(latestRecord)
 	}
-
-	//return failed response status 500
-
 	return c.SendStatus(500)
 }

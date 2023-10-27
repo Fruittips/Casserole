@@ -1,25 +1,14 @@
 package utils
 
 import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 	"sync"
 )
-
-//----------------------------------------
-// Structs
-//----------------------------------------
-
-type Row struct {
-    StudentId   string
-    CreatedAt   int64
-    DeletedAt   int64
-    StudentName string
-}
-
-type Database struct {
-	TableName    string           `json:"TableName"`
-	PartitionKey int              `json:"PartitionKey"`
-	Partitions   map[string][]Row `json:"Partitions"`
-}
 
 type ReplicaData struct {
 	filepath string
@@ -56,7 +45,6 @@ func NewReadRepairsManager(filepaths []string) *ReadRepairsManager {
 		Datas: []ReplicaData{},
 	}
 
-
 	// For each filepath given:
 	for _, path := range filepaths {
 		// validation : absolute path, readable file
@@ -82,7 +70,7 @@ func NewReadRepairsManager(filepaths []string) *ReadRepairsManager {
 
 	fmt.Println("[RRM] Initialized ReadRepairsManager with filepaths: ", rrm.filepaths)
 
-	return rrm
+	return &rrm
 }
 
 

@@ -2,31 +2,44 @@ package handlers
 
 import (
 	"casserole/utils"
-	"net/http"
-
 	"github.com/gofiber/fiber/v2"
 )
 
+// When called, returns a row for the newly revived node
 func (h *BaseHandler) InternalCheckHHHandler(c *fiber.Ctx) error {
-	resp := InternalCheckHH(h.NodeManager)
-	if resp.Error == nil && resp.StatusCode == http.StatusOK {
-		return c.JSON(resp.Data)
+	nodeIdToCheck := c.Params("nodeId")
+
+	err := internalCheckHH(h.NodeManager, utils.NodeId(nodeIdToCheck))
+	if err != nil {
+		return c.SendStatus(404) // TODO: Two possible errors -- one is error in the function itself, another is no hinted handoffs found for the node.
 	}
-	return c.SendStatus(resp.StatusCode)
+	return c.SendStatus(200) // Since we're sending an internal write separately.
 }
 
-func InternalCheckHH(nm *utils.NodeManager) utils.Response {
-	// for logging
+func internalCheckHH(nm *utils.NodeManager, nodeIdToCheck utils.NodeId) error {
 	for id, outerrow := range nm.HintedHandoffManager.Data.Rows {
-		if string(nm.Me().Port) == id {
+		if nodeIdToCheck == utils.NodeId(id) {
+			// Current row refers to the node ID to be checked
 			for i, adbm := range outerrow {
-				InternalWrite(nm, id, adbm.Data[i])
+				targetNode, err := nm.GetNodeById(nodeIdToCheck)
+				if err != nil {
+					return err
+				}
+				courseId := "TODO"
+				data := adbm.Data[i]
+
+				// Send an internal write to that node
+				err = nm.SendInternalWrite(
+					*targetNode,
+					courseId,
+					data,
+				)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
-
-	return utils.Response{
-		StatusCode: 200,
-		NodeId:     nm.LocalId,
-	}
+	return nil
+	
 }

@@ -2,39 +2,28 @@ package handlers
 
 import (
 	"casserole/utils"
-	"net/http"
-
 	"github.com/gofiber/fiber/v2"
 )
 
 func (h *BaseHandler) InternalWriteHandler(c *fiber.Ctx) error {
-	// failure response
+	// Parse parameters
+	courseId := c.Params("courseId")
 
-	r := new(utils.Request)
-	if err := c.BodyParser(r); err != nil {
+	// Parse body -- we're given a Row in JSON
+	newRow := new(utils.Row)
+	if err := c.BodyParser(newRow); err != nil {
 		return err
 	}
 
-	resp := InternalWrite(h.NodeManager, r.CourseId, *r.Payload)
-	if resp.Error == nil && resp.StatusCode == http.StatusOK {
-		return c.JSON(resp.Data)
+	// Perform local write
+	err := internalWrite(h.NodeManager, courseId, *newRow)
+	if err != nil {
+		return c.SendStatus(500)
 	}
-	return c.SendStatus(resp.StatusCode)
+	return c.SendStatus(200)
 }
 
-func InternalWrite(nm *utils.NodeManager, partitionKey string, newData utils.Row) utils.Response {
-
-	err := nm.DatabaseManager.AppendRow(partitionKey, newData)
-	if err != nil {
-		return utils.Response{
-			Error:      err,
-			StatusCode: 500,
-			NodeId:     nm.LocalId,
-		}
-	}
-
-	return utils.Response{
-		StatusCode: 200,
-		NodeId:     nm.LocalId,
-	}
+func internalWrite(nm *utils.NodeManager, courseId string, newData utils.Row) error {
+	err := nm.DatabaseManager.AppendRow(courseId, newData)
+	return err
 }

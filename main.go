@@ -29,7 +29,7 @@ func main() {
 	write_endpoint_route := fmt.Sprintf(handlers.WRITE_ENDPOINT_FSTRING, ":courseId", ":studentId")
 	internal_read_endpoint_route  := fmt.Sprintf(handlers.INTERNAL_READ_ENDPOINT_FSTRING, ":courseId", ":studentId")
 	internal_write_endpoint_route := fmt.Sprintf(handlers.INTERNAL_WRITE_ENDPOINT_FSTRING, ":courseId", ":studentId")
-	internal_checkhh_endpoint_route := handlers.INTERNAL_CHECKHH_ENDPOINT_FSTRING
+	internal_checkhh_endpoint_route := fmt.Sprintf(handlers.INTERNAL_CHECKHH_ENDPOINT_FSTRING, ":nodeId")
 	internal_kill_endpoint_route := handlers.INTERNAL_KILL_ENDPOINT_FSTRING
 	internal_revive_endpoint_route := handlers.INTERNAL_REVIVE_ENDPOINT_FSTRING
 
@@ -42,13 +42,14 @@ func main() {
 		return ctx.SendString("Hello, World 👋!")
 	})
 
-	app.Get(write_endpoint_route, baseHandler.WriteHandler)
 
 	app.Get(read_endpoint_route, baseHandler.ReadHandler)
+	
+	app.Post(write_endpoint_route, baseHandler.WriteHandler)
 
 	app.Get(internal_read_endpoint_route, baseHandler.InternalReadHandler)
 
-	app.Get(internal_write_endpoint_route, baseHandler.InternalWriteHandler)
+	app.Post(internal_write_endpoint_route, baseHandler.InternalWriteHandler)
 
 	app.Get(internal_checkhh_endpoint_route, baseHandler.InternalCheckHHHandler)
 
