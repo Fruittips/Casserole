@@ -49,8 +49,9 @@ type NodeManager struct {
 	Nodes                map[NodeId](*Node)
 	DatabaseManager      *DatabaseManager
 	HintedHandoffManager *HintedHandoffManager
-	cht                  *cht.CHashTable
-	sysConfig            *sysConfig
+	// ReadRepairsManager   *ReadRepairsManager
+	cht       *cht.CHashTable
+	sysConfig *sysConfig
 }
 
 func NewNodeManager(port int) *NodeManager {
