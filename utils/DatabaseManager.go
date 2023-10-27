@@ -80,6 +80,14 @@ func (db *DatabaseManager) AppendRow(partitionKey string, newData Row) error {
 	if !exists {
 		db.Data.Partitions[partitionKey] = []Row{newData}
 	} else {
+		for _, pdata := range data { // handle write duplicates
+			if pdata.StudentId == newData.StudentId {
+				if newData.CreatedAt < pdata.CreatedAt { // assert that newData is later
+					// return nil // possibly return as nil, data simply not added with no error handling
+					return errors.New("write failed: earlier data found")
+				}
+			}
+		}
 		db.Data.Partitions[partitionKey] = append(data, newData)
 	}
 
