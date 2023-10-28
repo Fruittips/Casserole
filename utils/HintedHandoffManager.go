@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 )
@@ -27,13 +28,17 @@ func (m AtomicDbMessage) String() string {
 func (h HintedHandoff) String() string {
 	builder := &strings.Builder{}
 
-	// Print basic fields
-	// fmt.Fprintf(builder, "TableName: %s\n", h.TableName)
-	// fmt.Fprintf(builder, "Columns: %v\n", h.Columns)
+	// Extract and sort the IDs
+	ids := make([]string, 0, len(h.Rows))
+	for id := range h.Rows {
+		ids = append(ids, string(id))
+	}
+	sort.Strings(ids)
 
-	// Print rows with atomic messages
+	// Print rows based on the sorted IDs
 	fmt.Fprintln(builder, "Rows:")
-	for id, messages := range h.Rows {
+	for _, id := range ids {
+		messages := h.Rows[NodeId(id)]
 		fmt.Fprintf(builder, "%s\n", id)
 		for _, msg := range messages {
 			fmt.Fprintf(builder, "    - %s\n", msg)

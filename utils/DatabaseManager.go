@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 )
@@ -42,13 +43,23 @@ func (d Database) String() string {
 	// Print basic fields
 	fmt.Fprintf(builder, "TableName: %s\n", d.TableName)
 
-	// Print rows
+	// Extract and sort the partition keys
+	partitionKeys := make([]string, 0, len(d.Partitions))
+	for k := range d.Partitions {
+		partitionKeys = append(partitionKeys, k)
+	}
+	sort.Strings(partitionKeys)
+	fmt.Fprintf(builder, "=========\n")
+	// Print rows based on the sorted partition keys
 	fmt.Fprintln(builder, "Partitions:")
-	for partitionKeyValue, rows := range d.Partitions {
-		fmt.Fprintf(builder, "%s: %s\n", d.PartitionKey, partitionKeyValue)
+	fmt.Fprintf(builder, "=========\n")
+	for _, partitionKey := range partitionKeys {
+		rows := d.Partitions[partitionKey]
+		fmt.Fprintf(builder, "%s: %s\n", d.PartitionKey, partitionKey)
 		for _, row := range rows {
 			fmt.Fprintf(builder, "\t\t%s\n", row)
 		}
+		fmt.Fprintf(builder, "------------\n")
 	}
 
 	return builder.String()

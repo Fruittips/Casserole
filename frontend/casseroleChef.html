@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casserole Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .node {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+
+
+<body>
+    <div class="flex flex-wrap p-4 gap-4"> <!-- This is the container for all nodes -->
+
+        <!-- Node 3000 -->
+        <div id="node3000" class="node bg-white shadow-md p-4 rounded w-1/3 min-w-l"> <!-- added some styling for the node -->
+            <h3 class="text-xl font-bold mb-4">Node 3000</h3>
+            <div class="data-section mb-2">
+                <strong class="block">Node Data:</strong>
+                <p id="node-3000-data">Status: Awaiting data...</p>
+            </div>
+            <div class="data-section mb-2">
+                <strong class="block">DB Data:</strong>
+                <p id="node-3000-db-data">Status: Awaiting data...</p>
+            </div>
+            <div class="data-section mb-2">
+                <strong class="block">HH Data:</strong>
+                <p id="node-3000-hh-data">Status: Awaiting data...</p>
+            </div>
+    
+            <form onsubmit="postRequest(3000); return false;" class="mb-4">
+                <label class="block mb-2">Course ID: <input type="text" id="node3000-course-id" class="p-2 border rounded"></label>
+                <label class="block mb-2">Student Name: <input type="text" id="node3000-student-name" class="p-2 border rounded"></label>
+                <label class="block mb-2">Student Number: <input type="text" id="node3000-student-id" class="p-2 border rounded"></label>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">POST Data</button>
+            </form>
+    
+            <form onsubmit="getRequest(3000); return false;">
+                <label class="block mb-2">Course ID for GET: <input type="text" id="node3000-course-id-get" class="p-2 border rounded"></label>
+                <label class="block mb-2">Student ID for GET: <input type="text" id="node3000-student-id-get" class="p-2 border rounded"></label>
+                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">GET Data</button>
+            </form>
+        </div>
+    
+        <!-- Node 3001 -->
+        <div id="node3001" class="node bg-white shadow-md p-4 rounded w-1/3 min-w-l"> <!-- added some styling for the node -->
+            <h3 class="text-xl font-bold mb-4">Node 3001</h3>
+            <div class="data-section mb-2">
+                <strong class="block">Node Data:</strong>
+                <p id="node-3001-data">Status: Awaiting data...</p>
+            </div>
+            <div class="data-section mb-2">
+                <strong class="block">DB Data:</strong>
+                <p id="node-3001-db-data">Status: Awaiting data...</p>
+            </div>
+            <div class="data-section mb-2">
+                <strong class="block">HH Data:</strong>
+                <p id="node-3001-hh-data">Status: Awaiting data...</p>
+            </div>
+    
+            <form onsubmit="postRequest(3001); return false;" class="mb-4">
+                <label class="block mb-2">Course ID: <input type="text" id="node3001-course-id" class="p-2 border rounded"></label>
+                <label class="block mb-2">Student Name: <input type="text" id="node3001-student-name" class="p-2 border rounded"></label>
+                <label class="block mb-2">Student Number: <input type="text" id="node3001-student-id" class="p-2 border rounded"></label>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">POST Data</button>
+            </form>
+    
+            <form onsubmit="getRequest(3001); return false;">
+                <label class="block mb-2">Course ID for GET: <input type="text" id="node3001-course-id-get" class="p-2 border rounded"></label>
+                <label class="block mb-2">Student ID for GET: <input type="text" id="node3001-student-id-get" class="p-2 border rounded"></label>
+                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">GET Data</button>
+            </form>
+        </div>
+    
+    </div>
+    
+
+    <script>
+        function postRequest(port) {
+            const courseId = document.getElementById(`node${port}-course-id`).value;
+            const studentName = document.getElementById(`node${port}-student-name`).value;
+            const studentId = document.getElementById(`node${port}-student-id`).value;
+
+            const data = {
+                studentName: studentName,
+                studentId: studentId,
+                courseId: courseId
+            };
+
+            fetch(`http://127.0.0.1:${port}/write/course/${courseId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            }).then(response => {
+                window.alert("Success");
+            });
+        }
+
+        function getRequest(port) {
+            const courseId = document.getElementById(`node${port}-course-id-get`).value;
+            const studentId = document.getElementById(`node${port}-student-id-get`).value;
+            fetch(`http://127.0.0.1:${port}/read/course/${courseId}/student/${studentId}`)
+                .then(async(response) => {
+                    const data = await response.json();
+                    window.alert(JSON.stringify(data));
+                });
+        }
+
+        function establishSSE(port) {
+            const evtSource = new EventSource(`http://127.0.0.1:${port}/sse`);
+            evtSource.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                document.getElementById(`node-${port}-data`).innerHTML = data.node.replace(/\n/g, '<br>');
+                document.getElementById(`node-${port}-db-data`).innerHTML = data.db.replace(/\n/g, '<br>');
+                document.getElementById(`node-${port}-hh-data`).innerHTML = data.hh.replace(/\n/g, '<br>');
+            }
+        }
+
+        // Automatically establish SSE connections when the page loads
+        document.addEventListener("DOMContentLoaded", function() {
+            const ports = [3000, 3001]; // and so on...
+            for (let port of ports) {
+                establishSSE(port);
+            }
+        });
+    </script>
+
+</body>
+
+</html>

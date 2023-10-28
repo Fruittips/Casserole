@@ -9,6 +9,7 @@ import (
 	"runtime"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
@@ -38,6 +39,12 @@ func main() {
 	log.Printf("Node %v initialised on port %v.", nodeManager.LocalId, nodeManager.Me().Port)
 
 	app.Use(logger.New())
+	app.Use(cors.New(cors.Config{
+		AllowHeaders:     "*",
+		AllowOrigins:     "*",
+		AllowCredentials: true,
+		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
+	}))
 
 	app.Get("/health-check", func(ctx *fiber.Ctx) error {
 		return ctx.SendString("Hello, World 👋!")
@@ -56,6 +63,8 @@ func main() {
 	app.Get(internal_revive_endpoint_route, baseHandler.InternalReviveHandler)
 
 	app.Get(internal_kill_endpoint_route, baseHandler.InternalKillHandler)
+
+	app.Get("/sse", baseHandler.SseEndpointHandler)
 
 	if runtime.GOOS == "windows" {
 		// to disable windows firewall warning -- remove in prod please
