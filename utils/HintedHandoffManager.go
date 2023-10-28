@@ -17,7 +17,7 @@ type HintedHandoff struct {
 }
 
 type AtomicDbMessage struct {
-	Data      []Row `json:"Data"`
+	Data      Row   `json:"Data"`
 	Timestamp int64 `json:"Timestamp"`
 }
 

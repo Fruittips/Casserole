@@ -15,7 +15,7 @@ import (
 var nodeManager *utils.NodeManager
 
 func main() {
-	
+
 	port := flag.Int("port", -1, "port to listen on")
 	flag.Parse()
 	if *port < 0 {
@@ -23,12 +23,12 @@ func main() {
 	}
 	nodeManager = utils.NewNodeManager(*port)
 	baseHandler := handlers.NewHandler(nodeManager)
-	
+
 	// Setup routes based on fstrings
 	// These routes are located in the handler files
-	read_endpoint_route  := fmt.Sprintf(utils.READ_ENDPOINT_FSTRING, ":courseId", ":studentId")
+	read_endpoint_route := fmt.Sprintf(utils.READ_ENDPOINT_FSTRING, ":courseId", ":studentId")
 	write_endpoint_route := fmt.Sprintf(utils.WRITE_ENDPOINT_FSTRING, ":courseId", ":studentId")
-	internal_read_endpoint_route  := fmt.Sprintf(utils.INTERNAL_READ_ENDPOINT_FSTRING, ":courseId", ":studentId")
+	internal_read_endpoint_route := fmt.Sprintf(utils.INTERNAL_READ_ENDPOINT_FSTRING, ":courseId", ":studentId")
 	internal_write_endpoint_route := fmt.Sprintf(utils.INTERNAL_WRITE_ENDPOINT_FSTRING, ":courseId", ":studentId")
 	internal_checkhh_endpoint_route := fmt.Sprintf(utils.INTERNAL_CHECKHH_ENDPOINT_FSTRING, ":nodeId")
 	internal_kill_endpoint_route := utils.INTERNAL_KILL_ENDPOINT_FSTRING
@@ -43,9 +43,8 @@ func main() {
 		return ctx.SendString("Hello, World 👋!")
 	})
 
-
 	app.Get(read_endpoint_route, baseHandler.ReadHandler)
-	
+
 	app.Post(write_endpoint_route, baseHandler.WriteHandler)
 
 	app.Get(internal_read_endpoint_route, baseHandler.InternalReadHandler)

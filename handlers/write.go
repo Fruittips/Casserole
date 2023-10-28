@@ -4,18 +4,20 @@ import (
 	"casserole/utils"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
 	courseId := c.Params("courseId")
-
+	timestamp := time.Now().UnixNano()
 	newStudent := utils.Row{}
 	err := c.BodyParser(&newStudent)
 	if err != nil {
 		return err
 	}
+	newStudent.CreatedAt = timestamp
 
 	// Get list of nodes from CHT
 	nodes := h.NodeManager.GetNodesForKey(courseId)
