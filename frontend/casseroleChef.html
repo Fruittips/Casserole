@@ -17,77 +17,114 @@
 
 
 
-<body>
-    <div class="flex flex-wrap p-4 gap-4"> 
+<body class="px-4 py-8">
+
+    <h1 class="text-4xl font-bold">Casserole DBMS</h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4">
 
         <!-- Node 3000 -->
-        <div id="node3000" class="node bg-white shadow-md p-4 rounded w-1/3 min-w-l">
-            <h3 class="text-xl font-bold mb-4">Node 3000</h3>
-            <div class="data-section mb-2">
-                <strong class="block">Node Data:</strong>
+        <div id="node3000" class="node bg-white shadow-md p-4 rounded w-1/3 min-w-xl w-full border-gray-300">
+            <h3 class="text-2xl font-bold mb-6">Node 3000</h3>
+            <div class="data-section mb-4">
+                <strong class="block text-lg pb-1">Node Data:</strong>
                 <p id="node-3000-data">Status: Awaiting data...</p>
             </div>
-            <div class="data-section mb-2">
-                <strong class="block">DB Data:</strong>
+            <div class="data-section mb-4">
+                <strong class="block text-lg pb-1">DB Data:</strong>
                 <p id="node-3000-db-data">Status: Awaiting data...</p>
             </div>
-            <div class="data-section mb-2">
-                <strong class="block">HH Data:</strong>
+            <div class="data-section mb-4">
+                <strong class="block text-lg pb-1">HH Data:</strong>
                 <p id="node-3000-hh-data">Status: Awaiting data...</p>
             </div>
-    
-            <form onsubmit="postRequest(3000); return false;" class="mb-8">
-                <label class="block mb-2">Course ID: <input type="text" id="node3000-course-id" class="p-2 border rounded"></label>
-                <label class="block mb-2">Student Name: <input type="text" id="node3000-student-name" class="p-2 border rounded"></label>
-                <label class="block mb-2">Student Number: <input type="text" id="node3000-student-id" class="p-2 border rounded"></label>
-                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">POST Data</button>
-            </form>
-    
-            <form onsubmit="getRequest(3000); return false;">
-                <label class="block mb-2">Course ID: <input type="text" id="node3000-course-id-get" class="p-2 border rounded"></label>
-                <label class="block mb-2">Student ID: <input type="text" id="node3000-student-id-get" class="p-2 border rounded"></label>
-                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-green-600">GET Data</button>
+
+            <div class="w-full border-b border-gray-500 my-4"></div>
+
+            <form onsubmit="postRequest(3000); return false;"
+                class="mb-8 border border-gray-300 rounded p-4 bg-gray-100">
+                <label class="block mb-2">Course ID:
+                    <input type="text" id="node3000-course-id" class="p-2 border rounded border-gray-300">
+                </label>
+                <label class="block mb-2">Student Name:
+                    <input type="text" id="node3000-student-name" class="p-2 border rounded border-gray-300">
+                </label>
+                <label class="block mb-2">Student Number:
+                    <input type="text" id="node3000-student-id" class="p-2 border rounded border-gray-300">
+                </label>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    POST Data
+                </button>
             </form>
 
-            <button onclick="kill(3000)" class="mt-8 bg-red-500 text-white px-4 py-2 rounded hover:bg-green-600">KILL</button>
-            <button onclick="revive(3000)" class="mt-8 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">REVIVE</button>
+            <form onsubmit="getRequest(3000); return false;" class="border border-gray-300 rounded p-4 bg-gray-100">
+                <label class="block mb-2">Course ID: <input type="text" id="node3000-course-id-get"
+                        class="p-2 border rounded border-gray-300"></label>
+                <label class="block mb-2">Student ID: <input type="text" id="node3000-student-id-get"
+                        class="p-2 border rounded border-gray-300"></label>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    GET Data
+                </button>
+            </form>
+
+            <button onclick="kill(3000)"
+                class="mt-8 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700">KILL</button>
+            <button onclick="revive(3000)"
+                class="mt-8 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700">REVIVE</button>
         </div>
-    
+
         <!-- Node 3001 -->
-        <div id="node3001" class="node bg-white shadow-md p-4 rounded w-1/3 min-w-l"> <!-- added some styling for the node -->
-            <h3 class="text-xl font-bold mb-4">Node 3001</h3>
-            <div class="data-section mb-2">
-                <strong class="block">Node Data:</strong>
+        <div id="node3001" class="node bg-white shadow-md p-4 rounded w-1/3 min-w-xl w-full border-gray-300">
+            <!-- added some styling for the node -->
+            <h3 class="text-2xl font-bold mb-6">Node 3001</h3>
+            <div class="data-section mb-4">
+                <strong class="block text-lg pb-1">Node Data:</strong>
                 <p id="node-3001-data">Status: Awaiting data...</p>
             </div>
-            <div class="data-section mb-2">
-                <strong class="block">DB Data:</strong>
+            <div class="data-section mb-4">
+                <strong class="block text-lg pb-1">DB Data:</strong>
                 <p id="node-3001-db-data">Status: Awaiting data...</p>
             </div>
-            <div class="data-section mb-2">
-                <strong class="block">HH Data:</strong>
+            <div class="data-section mb-4">
+                <strong class="block text-lg pb-1">HH Data:</strong>
                 <p id="node-3001-hh-data">Status: Awaiting data...</p>
             </div>
-    
-            <form onsubmit="postRequest(3001); return false;" class="mb-8">
-                <label class="block mb-2">Course ID: <input type="text" id="node3001-course-id" class="p-2 border rounded"></label>
-                <label class="block mb-2">Student Name: <input type="text" id="node3001-student-name" class="p-2 border rounded"></label>
-                <label class="block mb-2">Student Number: <input type="text" id="node3001-student-id" class="p-2 border rounded"></label>
-                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">POST Data</button>
-            </form>
-    
-            <form onsubmit="getRequest(3001); return false;">
-                <label class="block mb-2">Course ID: <input type="text" id="node3001-course-id-get" class="p-2 border rounded"></label>
-                <label class="block mb-2">Student ID: <input type="text" id="node3001-student-id-get" class="p-2 border rounded"></label>
-                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">GET Data</button>
+
+            <div class="w-full border-b border-gray-500 my-4"></div>
+
+            <form onsubmit="postRequest(3001); return false;"
+                class="mb-8 border border-gray-300 rounded p-4 bg-gray-100">
+                <label class="block mb-2">Course ID: <input type="text" id="node3001-course-id"
+                        class="p-2 border rounded border-gray-300"></label>
+                <label class="block mb-2">Student Name: <input type="text" id="node3001-student-name"
+                        class="p-2 border rounded border-gray-300"></label>
+                <label class="block mb-2">Student Number: <input type="text" id="node3001-student-id"
+                        class="p-2 border rounded border-gray-300"></label>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    POST Data
+                </button>
             </form>
 
-            <button onclick="kill(3001)" class="mt-8 bg-red-500 text-white px-4 py-2 rounded hover:bg-green-600">KILL</button>
-            <button onclick="revive(3001)" class="mt-8 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">REVIVE</button>
+            <form onsubmit="getRequest(3001); return false;" class="border border-gray-300 rounded p-4 bg-gray-100">
+                <label class="block mb-2">Course ID:
+                    <input type="text" id="node3001-course-id-get" class="p-2 border rounded border-gray-300">
+                </label>
+                <label class="block mb-2">Student ID:
+                    <input type="text" id="node3001-student-id-get" class="p-2 border rounded border-gray-300">
+                </label>
+                <button type="submit" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    GET Data
+                </button>
+            </form>
+
+            <button onclick="kill(3001)"
+                class="mt-8 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700">KILL</button>
+            <button onclick="revive(3001)"
+                class="mt-8 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700">REVIVE</button>
         </div>
-    
+
     </div>
-    
+
 
     <script>
         function postRequest(port) {
@@ -116,7 +153,7 @@
             const courseId = document.getElementById(`node${port}-course-id-get`).value;
             const studentId = document.getElementById(`node${port}-student-id-get`).value;
             fetch(`http://127.0.0.1:${port}/read/course/${courseId}/student/${studentId}`)
-                .then(async(response) => {
+                .then(async (response) => {
                     const data = await response.json();
                     window.alert(JSON.stringify(data));
                 });
@@ -126,8 +163,8 @@
             const courseId = document.getElementById(`node${port}-course-id-get`).value;
             const studentId = document.getElementById(`node${port}-student-id-get`).value;
             fetch(`http://127.0.0.1:${port}/internal/kill`)
-                .then(async(response) => {
-                    window.alert("Killed");    
+                .then(async (response) => {
+                    window.alert("Killed");
                 });
         }
 
@@ -135,14 +172,15 @@
             const courseId = document.getElementById(`node${port}-course-id-get`).value;
             const studentId = document.getElementById(`node${port}-student-id-get`).value;
             fetch(`http://127.0.0.1:${port}/internal/revive`)
-                .then(async(response) => {
-                    window.alert("Revived");    
+                .then(async (response) => {
+                    window.alert("Revived");
                 });
         }
 
+
         function establishSSE(port) {
             const evtSource = new EventSource(`http://127.0.0.1:${port}/sse`);
-            evtSource.onmessage = function(event) {
+            evtSource.onmessage = function (event) {
                 const data = JSON.parse(event.data);
                 document.getElementById(`node-${port}-data`).innerHTML = data.node.replace(/\n/g, '<br>');
                 document.getElementById(`node-${port}-db-data`).innerHTML = data.db.replace(/\n/g, '<br>');
@@ -152,8 +190,9 @@
 
         function getState(port) {
             fetch(`http://127.0.0.1:${port}/state`)
-                .then(async(res)=>{
+                .then(async (res) => {
                     const data = await res.json();
+                    console.log(data)
                     document.getElementById(`node-${port}-data`).innerHTML = data.node.replace(/\n/g, '<br>');
                     document.getElementById(`node-${port}-db-data`).innerHTML = data.db.replace(/\n/g, '<br>');
                     document.getElementById(`node-${port}-hh-data`).innerHTML = data.hh.replace(/\n/g, '<br>');
@@ -161,7 +200,7 @@
         }
 
         // Automatically establish SSE connections when the page loads
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             setInterval(() => {
                 const ports = [3000, 3001];
                 for (let port of ports) {
