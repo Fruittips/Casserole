@@ -38,13 +38,16 @@ func main() {
 	app := fiber.New()
 	log.Printf("Node %v initialised on port %v.", nodeManager.LocalId, nodeManager.Me().Port)
 
-	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
 		AllowHeaders:     "*",
 		AllowOrigins:     "*",
 		AllowCredentials: true,
 		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
 	}))
+
+	app.Get("/state", baseHandler.StatePollHandler)
+
+	app.Use(logger.New())
 
 	app.Get("/health-check", func(ctx *fiber.Ctx) error {
 		return ctx.SendString("Hello, World 👋!")
@@ -63,8 +66,6 @@ func main() {
 	app.Get(internal_revive_endpoint_route, baseHandler.InternalReviveHandler)
 
 	app.Get(internal_kill_endpoint_route, baseHandler.InternalKillHandler)
-
-	app.Get("/sse", baseHandler.SseEndpointHandler)
 
 	if runtime.GOOS == "windows" {
 		// to disable windows firewall warning -- remove in prod please

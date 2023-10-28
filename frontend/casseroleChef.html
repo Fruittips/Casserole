@@ -150,12 +150,24 @@
             }
         }
 
+        function getState(port) {
+            fetch(`http://127.0.0.1:${port}/state`)
+                .then(async(res)=>{
+                    const data = await res.json();
+                    document.getElementById(`node-${port}-data`).innerHTML = data.node.replace(/\n/g, '<br>');
+                    document.getElementById(`node-${port}-db-data`).innerHTML = data.db.replace(/\n/g, '<br>');
+                    document.getElementById(`node-${port}-hh-data`).innerHTML = data.hh.replace(/\n/g, '<br>');
+                })
+        }
+
         // Automatically establish SSE connections when the page loads
         document.addEventListener("DOMContentLoaded", function() {
-            const ports = [3000, 3001]; // and so on...
-            for (let port of ports) {
-                establishSSE(port);
-            }
+            setInterval(() => {
+                const ports = [3000, 3001];
+                for (let port of ports) {
+                    getState(port)
+                }
+            }, 1500);
         });
     </script>
 
