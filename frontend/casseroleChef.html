@@ -36,7 +36,7 @@
                 <p id="node-3000-hh-data">Status: Awaiting data...</p>
             </div>
     
-            <form onsubmit="postRequest(3000); return false;" class="mb-4">
+            <form onsubmit="postRequest(3000); return false;" class="mb-8">
                 <label class="block mb-2">Course ID: <input type="text" id="node3000-course-id" class="p-2 border rounded"></label>
                 <label class="block mb-2">Student Name: <input type="text" id="node3000-student-name" class="p-2 border rounded"></label>
                 <label class="block mb-2">Student Number: <input type="text" id="node3000-student-id" class="p-2 border rounded"></label>
@@ -44,10 +44,13 @@
             </form>
     
             <form onsubmit="getRequest(3000); return false;">
-                <label class="block mb-2">Course ID for GET: <input type="text" id="node3000-course-id-get" class="p-2 border rounded"></label>
-                <label class="block mb-2">Student ID for GET: <input type="text" id="node3000-student-id-get" class="p-2 border rounded"></label>
-                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">GET Data</button>
+                <label class="block mb-2">Course ID: <input type="text" id="node3000-course-id-get" class="p-2 border rounded"></label>
+                <label class="block mb-2">Student ID: <input type="text" id="node3000-student-id-get" class="p-2 border rounded"></label>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-green-600">GET Data</button>
             </form>
+
+            <button onclick="kill(3000)" class="mt-8 bg-red-500 text-white px-4 py-2 rounded hover:bg-green-600">KILL</button>
+            <button onclick="revive(3000)" class="mt-8 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">REVIVE</button>
         </div>
     
         <!-- Node 3001 -->
@@ -66,7 +69,7 @@
                 <p id="node-3001-hh-data">Status: Awaiting data...</p>
             </div>
     
-            <form onsubmit="postRequest(3001); return false;" class="mb-4">
+            <form onsubmit="postRequest(3001); return false;" class="mb-8">
                 <label class="block mb-2">Course ID: <input type="text" id="node3001-course-id" class="p-2 border rounded"></label>
                 <label class="block mb-2">Student Name: <input type="text" id="node3001-student-name" class="p-2 border rounded"></label>
                 <label class="block mb-2">Student Number: <input type="text" id="node3001-student-id" class="p-2 border rounded"></label>
@@ -74,10 +77,13 @@
             </form>
     
             <form onsubmit="getRequest(3001); return false;">
-                <label class="block mb-2">Course ID for GET: <input type="text" id="node3001-course-id-get" class="p-2 border rounded"></label>
-                <label class="block mb-2">Student ID for GET: <input type="text" id="node3001-student-id-get" class="p-2 border rounded"></label>
+                <label class="block mb-2">Course ID: <input type="text" id="node3001-course-id-get" class="p-2 border rounded"></label>
+                <label class="block mb-2">Student ID: <input type="text" id="node3001-student-id-get" class="p-2 border rounded"></label>
                 <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">GET Data</button>
             </form>
+
+            <button onclick="kill(3001)" class="mt-8 bg-red-500 text-white px-4 py-2 rounded hover:bg-green-600">KILL</button>
+            <button onclick="revive(3001)" class="mt-8 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">REVIVE</button>
         </div>
     
     </div>
@@ -113,6 +119,24 @@
                 .then(async(response) => {
                     const data = await response.json();
                     window.alert(JSON.stringify(data));
+                });
+        }
+
+        function kill(port) {
+            const courseId = document.getElementById(`node${port}-course-id-get`).value;
+            const studentId = document.getElementById(`node${port}-student-id-get`).value;
+            fetch(`http://127.0.0.1:${port}/internal/kill`)
+                .then(async(response) => {
+                    window.alert("Killed");    
+                });
+        }
+
+        function revive(port) {
+            const courseId = document.getElementById(`node${port}-course-id-get`).value;
+            const studentId = document.getElementById(`node${port}-student-id-get`).value;
+            fetch(`http://127.0.0.1:${port}/internal/revive`)
+                .then(async(response) => {
+                    window.alert("Revived");    
                 });
         }
 
