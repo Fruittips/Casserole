@@ -93,6 +93,13 @@ func readRepair(nm *utils.NodeManager, courseId string, latestRecord utils.Row, 
 				continue
 			}
 			log.Printf("Node %v READ REPAIR node %v.", nm.LocalId, outdatedNode.Id)
+			if outdatedNode.Id == nm.Me().Id {
+				err := internalWrite(nm, courseId, latestRecord)
+				if err != nil {
+					log.Printf("Node %v READ REPAIR node %v Error: %v", nm.LocalId, res.srcId, err)
+				}
+				continue
+			}
 			err = nm.SendInternalWrite(*outdatedNode, courseId, latestRecord)
 
 			if err != nil {
