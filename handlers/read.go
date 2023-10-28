@@ -53,6 +53,7 @@ func (h *BaseHandler) ReadHandler(c *fiber.Ctx) error {
 	ackCount := 0
 	var latestRecord *utils.Row
 	responses_ls := make([]internalReadResponse, 0)
+
 	for res := range responses {
 		data := res.data
 		responses_ls = append(responses_ls, res)
@@ -85,7 +86,7 @@ func (h *BaseHandler) ReadHandler(c *fiber.Ctx) error {
 func readRepair(nm *utils.NodeManager, courseId string, latestRecord utils.Row, internalReadResponses []internalReadResponse) {
 	//TODO: do in goroutines and wg
 	for _, res := range internalReadResponses {
-		if !latestRecord.Equal(*res.data) {
+		if res.data == nil || !latestRecord.Equal(*res.data) {
 			outdatedNode, err := nm.GetNodeById(utils.NodeId(res.srcId))
 
 			if err != nil {
