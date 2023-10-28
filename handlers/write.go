@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"casserole/utils"
+	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -24,6 +25,7 @@ func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
 	var reqWg sync.WaitGroup
 
 	responses := make(chan bool, len(nodes))
+	failures := make(chan utils.NodeId, len(nodes))
 	for _, node := range nodes {
 		log.Printf("Node %v: WRITE(%v, %v) to node %v with data: %v", h.NodeManager.LocalId, courseId, newStudent.StudentId, node.Id, newStudent)
 
@@ -45,6 +47,7 @@ func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
 			err := h.NodeManager.SendInternalWrite(*n, courseId, newStudent)
 			if err != nil {
 				log.Printf("Node %v WRITE to node %v Error: %v", h.NodeManager.LocalId, n.Id, err)
+				failures <- n.Id
 				return
 			}
 			responses <- true
@@ -53,23 +56,25 @@ func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
 
 	reqWg.Wait()
 	close(responses)
+	close(failures)
 
 	// Check number of acks
 	ackCount := len(responses)
 
 	// If failed to hit QUORUM
 	if ackCount < h.NodeManager.Quorum {
-		// TODO: Write to hinted handoff
-		return c.SendStatus(500)
+		return c.Status(500).SendString("Failed to hit QUORUM")
 	}
 
 	// If hit QUORUM:
 	// Either all nodes responded, or some nodes responded
-	if ackCount == len(nodes) {
-		return c.SendStatus(200)
-	} else {
-		// TODO: Hinted Handoffs
-
-		return c.SendStatus(200)
+	for failedNodeId := range failures {
+		fmt.Println("Storing hinted handoff for node", failedNodeId)
+		h.NodeManager.HintedHandoffManager.Append(failedNodeId, utils.AtomicDbMessage{
+			Data:     newStudent,
+			CourseId: courseId,
+		})
 	}
+	return c.Status(200).SendString("Successfully written to DB")
+
 }

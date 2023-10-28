@@ -21,15 +21,15 @@ type Node struct {
 	isDead bool
 }
 
-func (n Node) IsDead() bool {
+func (n *Node) IsDead() bool {
 	return n.isDead
 }
 
-func (n Node) MakeDead() {
+func (n *Node) MakeDead() {
 	n.isDead = true
 }
 
-func (n Node) MakeAlive() {
+func (n *Node) MakeAlive() {
 	n.isDead = false
 }
 

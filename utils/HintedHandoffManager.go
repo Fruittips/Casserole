@@ -13,16 +13,16 @@ import (
 type HintedHandoff struct {
 	// TableName string                       `json:"TableName"`
 	// Columns   []string                     `json:"Columns"`
-	Rows map[string][]AtomicDbMessage `json:"Row"`
+	Rows map[NodeId][]AtomicDbMessage `json:"Row"`
 }
 
 type AtomicDbMessage struct {
-	Data      Row   `json:"Data"`
-	Timestamp int64 `json:"Timestamp"`
+	Data     Row    `json:"Data"`
+	CourseId string `json:"CourseId"`
 }
 
 func (m AtomicDbMessage) String() string {
-	return fmt.Sprintf("Data: %v, Timestamp: %d", m.Data, m.Timestamp)
+	return fmt.Sprintf("Data: %v, CourseId: %v", m.Data, m.CourseId)
 }
 func (h HintedHandoff) String() string {
 	builder := &strings.Builder{}
@@ -34,7 +34,7 @@ func (h HintedHandoff) String() string {
 	// Print rows with atomic messages
 	fmt.Fprintln(builder, "Rows:")
 	for id, messages := range h.Rows {
-		fmt.Fprintf(builder, id, "\n")
+		fmt.Fprintf(builder, "%s\n", id)
 		for _, msg := range messages {
 			fmt.Fprintf(builder, "    - %s\n", msg)
 		}
@@ -66,9 +66,13 @@ func newHintedHandoffManager(path string) (*HintedHandoffManager, error) {
 	return &HintedHandoffManager{filepath: path, Data: data}, nil
 }
 
-func (hhm *HintedHandoffManager) Append(nodeId string, dbMsg AtomicDbMessage) error {
+func (hhm *HintedHandoffManager) Append(nodeId NodeId, dbMsg AtomicDbMessage) error {
 	hhm.mux.Lock()
 	defer hhm.mux.Unlock()
+
+	if hhm.Data.Rows == nil {
+		hhm.Data.Rows = make(map[NodeId][]AtomicDbMessage)
+	}
 
 	hhm.Data.Rows[nodeId] = append(hhm.Data.Rows[nodeId], dbMsg)
 

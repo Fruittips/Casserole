@@ -73,16 +73,7 @@ func (h *BaseHandler) ReadHandler(c *fiber.Ctx) error {
 		}
 	}
 
-	// Identify nodes with outdated data, get them to read repair
-	//TODO:
-	// Ryan: Feels that ReadRepairsManager is unnecessary, no point creating a new manager for an ephemeral thing
-	//       Instead, just use a separate fn in here to handle any potential discrepancies with the latest and continue on our merry way
 	go readRepair(h.NodeManager, courseId, *latestRecord, responses_ls)
-	//TODO
-	// Alternative to above:
-	//TODO: run read repair here [untested]
-	//rrm := utils.NewReadRepairsManager(h.NodeManager, courseId, studentId, responses)
-	//rrm.PerformReadRepair(responses)
 
 	// Only return successful response if with quorum
 	if ackCount >= h.NodeManager.Quorum {

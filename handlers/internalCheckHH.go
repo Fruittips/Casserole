@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"casserole/utils"
+
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -20,13 +21,13 @@ func internalCheckHH(nm *utils.NodeManager, nodeIdToCheck utils.NodeId) error {
 	for id, outerrow := range nm.HintedHandoffManager.Data.Rows {
 		if nodeIdToCheck == utils.NodeId(id) {
 			// Current row refers to the node ID to be checked
-			for i, adbm := range outerrow {
+			for _, adbm := range outerrow {
 				targetNode, err := nm.GetNodeById(nodeIdToCheck)
 				if err != nil {
 					return err
 				}
-				courseId := "TODO"
-				data := adbm.Data[i]
+				courseId := adbm.CourseId
+				data := adbm.Data
 
 				// Send an internal write to that node
 				err = nm.SendInternalWrite(
@@ -41,5 +42,5 @@ func internalCheckHH(nm *utils.NodeManager, nodeIdToCheck utils.NodeId) error {
 		}
 	}
 	return nil
-	
+
 }

@@ -2,10 +2,15 @@ package handlers
 
 import (
 	"casserole/utils"
+
 	"github.com/gofiber/fiber/v2"
 )
 
 func (h *BaseHandler) InternalReadHandler(c *fiber.Ctx) error {
+	err := h.DelayIfDead(c)
+	if err != nil {
+		return c.SendStatus(503)
+	}
 	// Parse parameters
 	courseId := c.Params("courseId")
 	studentId := c.Params("studentId")

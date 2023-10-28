@@ -54,7 +54,7 @@ func (nm *NodeManager) SendInternalWrite(dstNode Node, courseId string, data Row
 	client := &http.Client{Timeout: timeout * time.Second} //TODO: should second be already in there?
 
 	// Generate the URL of the node: Target port, Write-to CourseID, Write-to StudentID
-	url := fmt.Sprintf(BASE_URL+INTERNAL_WRITE_ENDPOINT_FSTRING, dstNode.Port, courseId, data.StudentId)
+	url := fmt.Sprintf(BASE_URL+INTERNAL_WRITE_ENDPOINT_FSTRING, dstNode.Port, courseId)
 
 	// Send the POST request
 	newRowJSON, err := json.Marshal(data)

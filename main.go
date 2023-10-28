@@ -27,9 +27,9 @@ func main() {
 	// Setup routes based on fstrings
 	// These routes are located in the handler files
 	read_endpoint_route := fmt.Sprintf(utils.READ_ENDPOINT_FSTRING, ":courseId", ":studentId")
-	write_endpoint_route := fmt.Sprintf(utils.WRITE_ENDPOINT_FSTRING, ":courseId", ":studentId")
+	write_endpoint_route := fmt.Sprintf(utils.WRITE_ENDPOINT_FSTRING, ":courseId")
 	internal_read_endpoint_route := fmt.Sprintf(utils.INTERNAL_READ_ENDPOINT_FSTRING, ":courseId", ":studentId")
-	internal_write_endpoint_route := fmt.Sprintf(utils.INTERNAL_WRITE_ENDPOINT_FSTRING, ":courseId", ":studentId")
+	internal_write_endpoint_route := fmt.Sprintf(utils.INTERNAL_WRITE_ENDPOINT_FSTRING, ":courseId")
 	internal_checkhh_endpoint_route := fmt.Sprintf(utils.INTERNAL_CHECKHH_ENDPOINT_FSTRING, ":nodeId")
 	internal_kill_endpoint_route := utils.INTERNAL_KILL_ENDPOINT_FSTRING
 	internal_revive_endpoint_route := utils.INTERNAL_REVIVE_ENDPOINT_FSTRING

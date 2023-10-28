@@ -2,10 +2,15 @@ package handlers
 
 import (
 	"casserole/utils"
+
 	"github.com/gofiber/fiber/v2"
 )
 
 func (h *BaseHandler) InternalWriteHandler(c *fiber.Ctx) error {
+	delay := h.DelayIfDead(c)
+	if delay != nil {
+		return c.SendStatus(503)
+	}
 	// Parse parameters
 	courseId := c.Params("courseId")
 
