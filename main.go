@@ -34,7 +34,9 @@ func main() {
 	internal_kill_endpoint_route := utils.INTERNAL_KILL_ENDPOINT_FSTRING
 	internal_revive_endpoint_route := utils.INTERNAL_REVIVE_ENDPOINT_FSTRING
 
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		Immutable: true,
+	})
 	log.Printf("Node %v initialised on port %v.", nodeManager.LocalId, nodeManager.Me().Port)
 
 	app.Use(cors.New(cors.Config{
