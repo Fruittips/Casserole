@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casserole Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .node {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+
+
+<body class="px-6 py-12">
+
+    <h1 class="text-4xl font-bold pb-8">Casserole DBMS</h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4">
+
+        ===REPLACE NODE DASHBOARD===
+
+    </div>
+
+
+    <script>
+        function postRequest(port) {
+            const courseId = document.getElementById(`node${port}-course-id`).value;
+            const studentName = document.getElementById(`node${port}-student-name`).value;
+            const studentId = document.getElementById(`node${port}-student-id`).value;
+
+            const data = {
+                studentName: studentName,
+                studentId: studentId,
+                courseId: courseId
+            };
+
+            fetch(`http://127.0.0.1:${port}/write/course/${courseId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            }).then(response => {
+                window.alert("Success");
+            });
+        }
+
+        function getRequest(port) {
+            const courseId = document.getElementById(`node${port}-course-id-get`).value;
+            const studentId = document.getElementById(`node${port}-student-id-get`).value;
+            fetch(`http://127.0.0.1:${port}/read/course/${courseId}/student/${studentId}`)
+                .then(async (response) => {
+                    const data = await response.json();
+                    window.alert(JSON.stringify(data));
+                });
+        }
+
+        function kill(port) {
+            const courseId = document.getElementById(`node${port}-course-id-get`).value;
+            const studentId = document.getElementById(`node${port}-student-id-get`).value;
+            fetch(`http://127.0.0.1:${port}/internal/kill`)
+                .then(async (response) => {
+                    window.alert("Killed");
+                });
+        }
+
+        function revive(port) {
+            const courseId = document.getElementById(`node${port}-course-id-get`).value;
+            const studentId = document.getElementById(`node${port}-student-id-get`).value;
+            fetch(`http://127.0.0.1:${port}/internal/revive`)
+                .then(async (response) => {
+                    window.alert("Revived");
+                });
+        }
+
+
+        function establishSSE(port) {
+            const evtSource = new EventSource(`http://127.0.0.1:${port}/sse`);
+            evtSource.onmessage = function (event) {
+                const data = JSON.parse(event.data);
+                document.getElementById(`node-${port}-data`).innerHTML = data.node.replace(/\n/g, '<br>');
+                document.getElementById(`node-${port}-db-data`).innerHTML = data.db.replace(/\n/g, '<br>');
+                document.getElementById(`node-${port}-hh-data`).innerHTML = data.hh.replace(/\n/g, '<br>');
+            }
+        }
+
+        function getState(port) {
+            fetch(`http://127.0.0.1:${port}/state`)
+                .then(async (res) => {
+                    const data = await res.json();
+                    console.log(data)
+                    document.getElementById(`node-${port}-data`).innerHTML = data.node.replace(/\n/g, '<br>');
+                    document.getElementById(`node-${port}-db-data`).innerHTML = data.db.replace(/\n/g, '<br>');
+                    document.getElementById(`node-${port}-hh-data`).innerHTML = data.hh.replace(/\n/g, '<br>');
+                })
+        }
+
+        // Automatically establish SSE connections when the page loads
+        document.addEventListener("DOMContentLoaded", function () {
+            setInterval(() => {
+                ===REPLACE PORTS ARRAY===
+                for (let port of ports) {
+                    getState(port)
+                }
+            }, 1500);
+        });
+    </script>
+
+</body>
+
+</html>

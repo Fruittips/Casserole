@@ -23,8 +23,7 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4">
 
-        <!-- Node 3000 -->
-        <div id="node3000" class="node bg-white shadow-md p-4 rounded w-1/3 min-w-xl w-full border-gray-300">
+                <div id="node3000" class="node bg-white shadow-md p-4 rounded w-1/3 min-w-xl w-full border-gray-300">
             <h3 class="text-2xl font-bold mb-6">Node 3000</h3>
             <div class="data-section mb-4">
                 <strong class="block text-lg pb-1">Node Data:</strong>
@@ -71,11 +70,7 @@
                 class="mt-8 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700">KILL</button>
             <button onclick="revive(3000)"
                 class="mt-8 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700">REVIVE</button>
-        </div>
-
-        <!-- Node 3001 -->
-        <div id="node3001" class="node bg-white shadow-md p-4 rounded w-1/3 min-w-xl w-full border-gray-300">
-            <!-- added some styling for the node -->
+        </div>        <div id="node3001" class="node bg-white shadow-md p-4 rounded w-1/3 min-w-xl w-full border-gray-300">
             <h3 class="text-2xl font-bold mb-6">Node 3001</h3>
             <div class="data-section mb-4">
                 <strong class="block text-lg pb-1">Node Data:</strong>
@@ -94,25 +89,26 @@
 
             <form onsubmit="postRequest(3001); return false;"
                 class="mb-8 border border-gray-300 rounded p-4 bg-gray-100">
-                <label class="block mb-2">Course ID: <input type="text" id="node3001-course-id"
-                        class="p-2 border rounded border-gray-300"></label>
-                <label class="block mb-2">Student Name: <input type="text" id="node3001-student-name"
-                        class="p-2 border rounded border-gray-300"></label>
-                <label class="block mb-2">Student Number: <input type="text" id="node3001-student-id"
-                        class="p-2 border rounded border-gray-300"></label>
+                <label class="block mb-2">Course ID:
+                    <input type="text" id="node3001-course-id" class="p-2 border rounded border-gray-300">
+                </label>
+                <label class="block mb-2">Student Name:
+                    <input type="text" id="node3001-student-name" class="p-2 border rounded border-gray-300">
+                </label>
+                <label class="block mb-2">Student Number:
+                    <input type="text" id="node3001-student-id" class="p-2 border rounded border-gray-300">
+                </label>
                 <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">
                     POST Data
                 </button>
             </form>
 
             <form onsubmit="getRequest(3001); return false;" class="border border-gray-300 rounded p-4 bg-gray-100">
-                <label class="block mb-2">Course ID:
-                    <input type="text" id="node3001-course-id-get" class="p-2 border rounded border-gray-300">
-                </label>
-                <label class="block mb-2">Student ID:
-                    <input type="text" id="node3001-student-id-get" class="p-2 border rounded border-gray-300">
-                </label>
-                <button type="submit" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">
+                <label class="block mb-2">Course ID: <input type="text" id="node3001-course-id-get"
+                        class="p-2 border rounded border-gray-300"></label>
+                <label class="block mb-2">Student ID: <input type="text" id="node3001-student-id-get"
+                        class="p-2 border rounded border-gray-300"></label>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">
                     GET Data
                 </button>
             </form>
@@ -120,6 +116,147 @@
             <button onclick="kill(3001)"
                 class="mt-8 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700">KILL</button>
             <button onclick="revive(3001)"
+                class="mt-8 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700">REVIVE</button>
+        </div>        <div id="node3002" class="node bg-white shadow-md p-4 rounded w-1/3 min-w-xl w-full border-gray-300">
+            <h3 class="text-2xl font-bold mb-6">Node 3002</h3>
+            <div class="data-section mb-4">
+                <strong class="block text-lg pb-1">Node Data:</strong>
+                <p id="node-3002-data">Status: Awaiting data...</p>
+            </div>
+            <div class="data-section mb-4">
+                <strong class="block text-lg pb-1">DB Data:</strong>
+                <p id="node-3002-db-data">Status: Awaiting data...</p>
+            </div>
+            <div class="data-section mb-4">
+                <strong class="block text-lg pb-1">HH Data:</strong>
+                <p id="node-3002-hh-data">Status: Awaiting data...</p>
+            </div>
+
+            <div class="w-full border-b border-gray-500 my-4"></div>
+
+            <form onsubmit="postRequest(3002); return false;"
+                class="mb-8 border border-gray-300 rounded p-4 bg-gray-100">
+                <label class="block mb-2">Course ID:
+                    <input type="text" id="node3002-course-id" class="p-2 border rounded border-gray-300">
+                </label>
+                <label class="block mb-2">Student Name:
+                    <input type="text" id="node3002-student-name" class="p-2 border rounded border-gray-300">
+                </label>
+                <label class="block mb-2">Student Number:
+                    <input type="text" id="node3002-student-id" class="p-2 border rounded border-gray-300">
+                </label>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    POST Data
+                </button>
+            </form>
+
+            <form onsubmit="getRequest(3002); return false;" class="border border-gray-300 rounded p-4 bg-gray-100">
+                <label class="block mb-2">Course ID: <input type="text" id="node3002-course-id-get"
+                        class="p-2 border rounded border-gray-300"></label>
+                <label class="block mb-2">Student ID: <input type="text" id="node3002-student-id-get"
+                        class="p-2 border rounded border-gray-300"></label>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    GET Data
+                </button>
+            </form>
+
+            <button onclick="kill(3002)"
+                class="mt-8 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700">KILL</button>
+            <button onclick="revive(3002)"
+                class="mt-8 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700">REVIVE</button>
+        </div>        <div id="node3003" class="node bg-white shadow-md p-4 rounded w-1/3 min-w-xl w-full border-gray-300">
+            <h3 class="text-2xl font-bold mb-6">Node 3003</h3>
+            <div class="data-section mb-4">
+                <strong class="block text-lg pb-1">Node Data:</strong>
+                <p id="node-3003-data">Status: Awaiting data...</p>
+            </div>
+            <div class="data-section mb-4">
+                <strong class="block text-lg pb-1">DB Data:</strong>
+                <p id="node-3003-db-data">Status: Awaiting data...</p>
+            </div>
+            <div class="data-section mb-4">
+                <strong class="block text-lg pb-1">HH Data:</strong>
+                <p id="node-3003-hh-data">Status: Awaiting data...</p>
+            </div>
+
+            <div class="w-full border-b border-gray-500 my-4"></div>
+
+            <form onsubmit="postRequest(3003); return false;"
+                class="mb-8 border border-gray-300 rounded p-4 bg-gray-100">
+                <label class="block mb-2">Course ID:
+                    <input type="text" id="node3003-course-id" class="p-2 border rounded border-gray-300">
+                </label>
+                <label class="block mb-2">Student Name:
+                    <input type="text" id="node3003-student-name" class="p-2 border rounded border-gray-300">
+                </label>
+                <label class="block mb-2">Student Number:
+                    <input type="text" id="node3003-student-id" class="p-2 border rounded border-gray-300">
+                </label>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    POST Data
+                </button>
+            </form>
+
+            <form onsubmit="getRequest(3003); return false;" class="border border-gray-300 rounded p-4 bg-gray-100">
+                <label class="block mb-2">Course ID: <input type="text" id="node3003-course-id-get"
+                        class="p-2 border rounded border-gray-300"></label>
+                <label class="block mb-2">Student ID: <input type="text" id="node3003-student-id-get"
+                        class="p-2 border rounded border-gray-300"></label>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    GET Data
+                </button>
+            </form>
+
+            <button onclick="kill(3003)"
+                class="mt-8 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700">KILL</button>
+            <button onclick="revive(3003)"
+                class="mt-8 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700">REVIVE</button>
+        </div>        <div id="node3004" class="node bg-white shadow-md p-4 rounded w-1/3 min-w-xl w-full border-gray-300">
+            <h3 class="text-2xl font-bold mb-6">Node 3004</h3>
+            <div class="data-section mb-4">
+                <strong class="block text-lg pb-1">Node Data:</strong>
+                <p id="node-3004-data">Status: Awaiting data...</p>
+            </div>
+            <div class="data-section mb-4">
+                <strong class="block text-lg pb-1">DB Data:</strong>
+                <p id="node-3004-db-data">Status: Awaiting data...</p>
+            </div>
+            <div class="data-section mb-4">
+                <strong class="block text-lg pb-1">HH Data:</strong>
+                <p id="node-3004-hh-data">Status: Awaiting data...</p>
+            </div>
+
+            <div class="w-full border-b border-gray-500 my-4"></div>
+
+            <form onsubmit="postRequest(3004); return false;"
+                class="mb-8 border border-gray-300 rounded p-4 bg-gray-100">
+                <label class="block mb-2">Course ID:
+                    <input type="text" id="node3004-course-id" class="p-2 border rounded border-gray-300">
+                </label>
+                <label class="block mb-2">Student Name:
+                    <input type="text" id="node3004-student-name" class="p-2 border rounded border-gray-300">
+                </label>
+                <label class="block mb-2">Student Number:
+                    <input type="text" id="node3004-student-id" class="p-2 border rounded border-gray-300">
+                </label>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    POST Data
+                </button>
+            </form>
+
+            <form onsubmit="getRequest(3004); return false;" class="border border-gray-300 rounded p-4 bg-gray-100">
+                <label class="block mb-2">Course ID: <input type="text" id="node3004-course-id-get"
+                        class="p-2 border rounded border-gray-300"></label>
+                <label class="block mb-2">Student ID: <input type="text" id="node3004-student-id-get"
+                        class="p-2 border rounded border-gray-300"></label>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    GET Data
+                </button>
+            </form>
+
+            <button onclick="kill(3004)"
+                class="mt-8 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700">KILL</button>
+            <button onclick="revive(3004)"
                 class="mt-8 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700">REVIVE</button>
         </div>
 
@@ -202,7 +339,7 @@
         // Automatically establish SSE connections when the page loads
         document.addEventListener("DOMContentLoaded", function () {
             setInterval(() => {
-                const ports = [3000, 3001];
+                const ports = [3000,3001,3002,3003,3004];
                 for (let port of ports) {
                     getState(port)
                 }
