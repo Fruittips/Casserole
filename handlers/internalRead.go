@@ -7,8 +7,7 @@ import (
 )
 
 func (h *BaseHandler) InternalReadHandler(c *fiber.Ctx) error {
-	err := h.DelayIfDead(c)
-	if err != nil {
+	if h.NodeManager.Me().IsDead() {
 		return c.SendStatus(503)
 	}
 	// Parse parameters
