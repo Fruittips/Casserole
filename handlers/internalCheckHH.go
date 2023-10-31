@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"casserole/utils"
+	"log"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -18,10 +19,15 @@ func (h *BaseHandler) InternalCheckHHHandler(c *fiber.Ctx) error {
 }
 
 func internalCheckHH(nm *utils.NodeManager, nodeIdToCheck utils.NodeId) error {
+	nm.HintedHandoffManager.Mux.Lock()
+	defer nm.HintedHandoffManager.Mux.Unlock()
 	for id, outerrow := range nm.HintedHandoffManager.Data.Rows {
 		if nodeIdToCheck == utils.NodeId(id) {
 			// Current row refers to the node ID to be checked
-			for _, adbm := range outerrow {
+
+			for len(outerrow) > 0 {
+				adbm := outerrow[0]
+
 				targetNode, err := nm.GetNodeById(nodeIdToCheck)
 				if err != nil {
 					return err
@@ -36,11 +42,17 @@ func internalCheckHH(nm *utils.NodeManager, nodeIdToCheck utils.NodeId) error {
 					data,
 				)
 				if err != nil {
-					return err
+					log.Printf("Error in internal write for node %v", id)
+					break
 				}
+
+				// pop
+				outerrow = outerrow[1:]
 			}
+			nm.HintedHandoffManager.Data.Rows[id] = outerrow
 		}
 	}
+	nm.HintedHandoffManager.OverwriteWithMem()
 	return nil
 
 }

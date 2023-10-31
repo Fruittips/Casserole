@@ -50,7 +50,7 @@ func (h HintedHandoff) String() string {
 
 type HintedHandoffManager struct {
 	filepath string
-	mux      sync.Mutex
+	Mux      sync.Mutex
 	Data     HintedHandoff
 }
 
@@ -72,8 +72,8 @@ func newHintedHandoffManager(path string) (*HintedHandoffManager, error) {
 }
 
 func (hhm *HintedHandoffManager) Append(nodeId NodeId, dbMsg AtomicDbMessage) error {
-	hhm.mux.Lock()
-	defer hhm.mux.Unlock()
+	hhm.Mux.Lock()
+	defer hhm.Mux.Unlock()
 
 	if hhm.Data.Rows == nil {
 		hhm.Data.Rows = make(map[NodeId][]AtomicDbMessage)
@@ -81,6 +81,15 @@ func (hhm *HintedHandoffManager) Append(nodeId NodeId, dbMsg AtomicDbMessage) er
 
 	hhm.Data.Rows[nodeId] = append(hhm.Data.Rows[nodeId], dbMsg)
 
+	bytes, err := json.Marshal(hhm.Data)
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(hhm.filepath, bytes, os.ModePerm)
+}
+
+func (hhm *HintedHandoffManager) OverwriteWithMem() error {
 	bytes, err := json.Marshal(hhm.Data)
 	if err != nil {
 		return err
