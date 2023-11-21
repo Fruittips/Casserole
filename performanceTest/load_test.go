@@ -29,33 +29,29 @@ func TestPerformance(t *testing.T) {
 	for round := 0; round < rounds; round++ {
 		var wg sync.WaitGroup
 
-		// we assume that we have a load balancer that hits nodes in a clockwise round robin manner
-		port := ports[round%len(ports)]
-
 		// round 1 = 1 write + 1 read, round 2 = 2 write + 2 read, etc.
-		numerOfReads := round + 1
-		numerOfWrites := round + 1
-		wg.Add(numerOfReads + numerOfWrites)
+		numberOfReadsAndWrites := round + 1
+		wg.Add(numberOfReadsAndWrites * 2)
 
 		// channels to store timings
-		writeTimings := make(chan time.Duration, numerOfWrites)
-		readTimings := make(chan time.Duration, numerOfReads)
+		writeTimings := make(chan time.Duration, numberOfReadsAndWrites)
+		readTimings := make(chan time.Duration, numberOfReadsAndWrites)
 
-		for r := 0; r < numerOfReads; r++ {
+		// we assume that we have a load balancer that hits nodes in a clockwise round robin manner
+		for r := 0; r < numberOfReadsAndWrites; r++ {
 			go func(p string) {
 				defer wg.Done()
 				startTime := time.Now()
 				executeReadReq(p)
 				readTimings <- time.Since(startTime)
-			}(port)
-		}
-		for r := 0; r < numerOfWrites; r++ {
+			}(ports[r%len(ports)])
+
 			go func(p string) {
 				defer wg.Done()
 				startTime := time.Now()
 				executeWriteReq(p)
 				writeTimings <- time.Since(startTime)
-			}(port)
+			}(ports[r%len(ports)])
 		}
 
 		wg.Wait()
@@ -70,8 +66,9 @@ func TestPerformance(t *testing.T) {
 			totalGetTime += t
 		}
 
-		averagePostTime := totalPostTime / time.Duration(len(ports))
-		averageGetTime := totalGetTime / time.Duration(len(ports))
+		// calculate average time, time.Duration(numberOfWrites) is in nanosecond which is ok as totalPostTime is also in nanosecond
+		averagePostTime := totalPostTime / time.Duration(numberOfReadsAndWrites)
+		averageGetTime := totalGetTime / time.Duration(numberOfReadsAndWrites)
 		record[round] = map[string]time.Duration{
 			"Writes": averagePostTime,
 			"Reads":  averageGetTime,
@@ -81,7 +78,6 @@ func TestPerformance(t *testing.T) {
 	for i, r := range record {
 		fmt.Printf("Round %d: %v\n", i+1, r)
 	}
-
 }
 
 func executeWriteReq(port string) (resp *http.Response, err error) {
