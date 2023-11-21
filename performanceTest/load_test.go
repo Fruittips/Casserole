@@ -18,7 +18,7 @@ type requestData struct {
 	CourseId    string `json:"courseId"`
 }
 
-var portsStr = flag.String("ports", "", "the foobar bang")
+var portsStr = flag.String("ports", "", "Ports to hit")
 
 func TestPerformance(t *testing.T) {
 	flag.Parse()
