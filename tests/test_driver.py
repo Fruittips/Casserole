@@ -4,10 +4,11 @@ import threading
 from pathlib import Path
 from typing import List, Dict, Any
 from dataclasses import dataclass
-from os import chdir
 from time import sleep
 
 ENCODING = "utf-8"
+
+### CLASSES ###
 
 @dataclass
 class Node:
@@ -26,62 +27,53 @@ class Config:
         return json.dumps(self, cls=ConfigEncoder)
 
 class NodeWatcher:
+    """ Watches the output of a process. """
     def __init__(self, node_id: str):
         self.node_id = node_id
         self.startEvent = None
         self.exitEvent = None
+        self._t = None
 
     def start(self):
         self.startEvent = threading.Event()
         self.exitEvent = threading.Event()
-        t = threading.Thread(target=self.thread_fn, args=(self.node_id, self.startEvent, self.exitEvent))
-        t.start()
+        self._t = threading.Thread(target=self.thread_fn, args=(self.node_id, self.startEvent, self.exitEvent))
+        self._t.start()
 
     @staticmethod
     def thread_fn(node_id, sEv, eEv):
         proc = subprocess.Popen(["go", "run", ".", f"-port={node_id}"],
-                                stdin=None,
                                 bufsize=1,
                                 text=True,
+                                stdin=None,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT
                                 )
 
-        # Watch output every x seconds
-        check_interval = 0.5
-        attempts = 100
-
-        print("starting")
-
-        out = ""
-
+        checkIntv = 5
         while not eEv.is_set():
-            if not sEv.is_set():
-                if attempts == 0:
-                    eEv.set()
-
-                out += proc.stdout.read(encoding=ENCODING)
-
+            timer = threading.Timer(checkIntv, eEv.set)
+            timer.start()
+            try:
+                out = proc.stdout.readline()
                 if "initialised" in out:
-                    print("started")
                     sEv.set()
-                else:
-                    attempts-=1
-
-                continue
+            except Exception:
+                break
+            timer.cancel()
             
-            out += proc.stdout.read(encoding=ENCODING)
-                
-            sleep(check_interval)
-
         # End of loop
+        print(f"Node {node_id}: Killed.")
         proc.kill()
 
     def exit(self):
         self.exitEvent.set()
+        if self._t is not None:
+            self._t.join()
         
 
 class Runner:
+    """ Runs the System. """
     def __init__(self, config: Config):
         self.config = config
         self.watchers:Dict[str, NodeWatcher] = {}
@@ -95,6 +87,7 @@ class Runner:
         return json.dumps(empty_dict)
     
     def initialise(self):
+        """ Initialises the system. Blocks until all nodes have started (i.e. the server is up for all nodes) """
         # Generate config.json file
         Path("./config.json").write_text(self.config.to_json())
         print("Generated config.json")
@@ -106,7 +99,6 @@ class Runner:
 
         # Initialise nodes
         for node_id in self.config.ring:
-            print(f"Initialising node {node_id}")
             self.watchers[node_id] = NodeWatcher(node_id)
             self.watchers[node_id].start()
 
@@ -114,34 +106,47 @@ class Runner:
         for node_id in self.watchers:
             while not self.watchers[node_id].startEvent.is_set():
                 pass
-            print(f"Node {node_id}: Started.")
+            print(f"Node {node_id}: Initialised.")
             
     def exit(self):
         for node_id in self.watchers:
             self.watchers[node_id].exit()
-    
-        
 
 class ConfigEncoder(json.JSONEncoder):
     def default(self, o: Config) -> Dict[str, Any]:
         return o.__dict__
 
-if __name__ == "__main__":
-    try:
-        # Initialise project directory as root
-        chdir("../")
-    
-        newConf = Config("QUORUM", 100, 10, 3, {
-            "3000": Node(3000, False),
-            "3001": Node(3001, False)
-        })
 
-        # Init runner
-        runner = Runner(newConf)
-        runner.initialise()
-    except KeyboardInterrupt:
-        print("Interrupted.")
-        runner.exit()
 
-    
+### TEST HELPER FUNCTIONS ###
+
+START_NODE_ID = 3000
+URL = "http://127.0.0.1"
+
+def get_read_url(node_id: str, course_id: str, student_id: str) -> str:
+    return f"{URL}:{node_id}/read/course/{course_id}/student/{student_id}"
+
+def get_write_url(node_id: str, course_id: str) -> str:
+    return f"{URL}:{node_id}/write/course/{course_id}"
+
+def get_write_data(student_id: str, student_name: str, created_at: int, deleted_at: int) -> Dict[str, Any]:
+    if deleted_at == -1:
+        return {
+            "StudentId": student_id,
+            "StudentName": student_name,
+            "CreatedAt": created_at,
+            "DeletedAt": None,
+        }
         
+    return {
+        "StudentId": student_id,
+        "StudentName": student_name,
+        "CreatedAt": created_at,
+        "DeletedAt": deleted_at,
+    }
+
+def getConfigWithNNodes(n: int, consistencyLevel="QUORUM", gracePeriod=10, timeout=10, rf=3) -> Config:
+    nodesDict = {}
+    for node_id in range(START_NODE_ID, START_NODE_ID + n):
+        nodesDict[str(node_id)] = Node(node_id, False)
+    return Config(consistencyLevel, gracePeriod, timeout, rf, nodesDict)
