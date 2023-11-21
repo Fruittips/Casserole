@@ -26,7 +26,7 @@ type nodeConfig struct {
 }
 
 // Loads configuration from a given path
-func loadConfig(path string) (*sysConfig, error) {
+func loadConfig(path string, isSingleNode bool) (*sysConfig, error) {
 	if !filepath.IsAbs(path) {
 		return nil, errors.New(fmt.Sprintf("Expected absolute path, was given %v", path))
 	}
@@ -40,6 +40,16 @@ func loadConfig(path string) (*sysConfig, error) {
 	err = json.Unmarshal(file, &configData)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("Could not unmarshal JSON file %v, error: %v", path, err))
+	}
+
+	if isSingleNode {
+		configData.RF = 1
+		configData.Nodes = map[string]nodeConfig{
+			"3000": {
+				Port:   3000,
+				IsDead: false,
+			},
+		}
 	}
 
 	return &configData, nil

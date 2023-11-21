@@ -9,6 +9,9 @@ import (
 
 // When called, returns a row for the newly revived node
 func (h *BaseHandler) InternalCheckHHHandler(c *fiber.Ctx) error {
+	if h.NodeManager.Me().IsDead() {
+		return c.SendStatus(503)
+	}
 	nodeIdToCheck := c.Params("nodeId")
 
 	err := internalCheckHH(h.NodeManager, utils.NodeId(nodeIdToCheck))

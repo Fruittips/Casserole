@@ -74,7 +74,9 @@ func (h *BaseHandler) ReadHandler(c *fiber.Ctx) error {
 		}
 	}
 
-	go readRepair(h.NodeManager, courseId, *latestRecord, responses_ls)
+	if latestRecord != nil {
+		go readRepair(h.NodeManager, courseId, *latestRecord, responses_ls)
+	}
 
 	// Only return successful response if with quorum
 	if ackCount >= h.NodeManager.Quorum {
