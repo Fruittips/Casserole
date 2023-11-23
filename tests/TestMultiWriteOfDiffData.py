@@ -1,9 +1,9 @@
 import json
 from random import choice
 from os import chdir
-from time import time, time_ns, sleep
+from time import time, sleep
 from test_driver import Runner, get_write_data, getConfigWithNNodes, write_req, read_req
-
+from sys import exit
 
 def TestMultiWriteOfDiffData(runner: Runner) -> bool:
     """
@@ -71,27 +71,27 @@ def TestMultiWriteOfDiffData(runner: Runner) -> bool:
     print(f"5. Write Response: {resp}")
 
     # Read from node
-    print("6. Sleeping for 10 seconds.")
-    sleep(10)
+    print("6. Sleeping for 5 seconds.")
+    sleep(5)
     print(f"6. Read from node {svr_id}")
     resp, success = read_req(svr_id, course_id, "1006969")
-    if not success:
-        print(f"6. Error: {resp}")
-        return False
     print(f"6. Read Response: {resp}")
-    sleep(5)
-    print(f"7. Read from node {svr_id}")
-    resp, success = read_req(svr_id, course_id, "1006969")
-    if not success:
-        print(f"7. Error: {resp}")
-        return False
-    print(f"7. Read Response: {resp}")
 
-    # Expect data to be the same
-    # read_dat = json.loads(resp)
-    # if read_dat["StudentId"] != data["StudentId"] or read_dat["StudentName"] != data["StudentName"]:
-    #     print("2. Error: Data not matching")
-    #     return False
+    ## Determine if data is the expected data
+    read_dat = json.loads(resp)
+    success = read_dat["StudentName"] == "TestUser5" # We expect it to be the LATEST WRITTEN user.
+    if not success:
+        print("7. Record read was NOT the latest. Retrying after 5 seconds to account for read-repair...")
+        sleep(5)
+        print(f"7. Read from node {svr_id}")
+        resp, success = read_req(svr_id, course_id, "1006969")
+        print(f"7. Read Response: {resp}")
+        read_dat = json.loads(resp)
+        success = read_dat["StudentName"] == "TestUser5"
+
+        if not success:
+            print("Error: Record read was NOT the latest after two tries.")
+            return False
     return True
 
 if __name__ == "__main__":
@@ -101,7 +101,11 @@ if __name__ == "__main__":
         chdir("../")
         config = getConfigWithNNodes(10)
         runner = Runner(config)
-        runner.initialise()
+        started = runner.initialise()
+        if not started:
+            print("FAIL. Unable to initialise all nodes.")
+            runner.exit()
+            exit(1)
 
         print("---INITIALISING TEST---")
         start = time()
@@ -112,9 +116,7 @@ if __name__ == "__main__":
             print(f"FAIL. Time taken: {time()-start}")
 
         print("Exiting.")
-        #runner.exit()
-        while True:
-            pass
+        runner.exit()
         
     except KeyboardInterrupt:
         print("Interrupted. Exiting.")

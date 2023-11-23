@@ -45,7 +45,11 @@ if __name__ == "__main__":
         chdir("../")
         config = getConfigWithNNodes(10)
         runner = Runner(config)
-        runner.initialise()
+        started = runner.initialise()
+        if not started:
+            print("FAIL. Unable to initialise all nodes.")
+            runner.exit()
+            exit(1)
 
         print("---INITIALISING TEST---")
         start = time()
