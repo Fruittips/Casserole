@@ -17,11 +17,20 @@ var nodeManager *utils.NodeManager
 func main() {
 
 	port := flag.Int("port", -1, "port to listen on")
+	isSingle := flag.Bool("single", false, "to run single node")
 	flag.Parse()
 	if *port < 0 {
 		panic("port is required")
 	}
-	nodeManager = utils.NewNodeManager(*port)
+	if *isSingle && *port != 3000 {
+		panic("single node must run on port 3000")
+	}
+	if *isSingle {
+		log.Println("Running in single node mode")
+	} else {
+		log.Println("Running in multi node mode")
+	}
+	nodeManager = utils.NewNodeManager(*port, *isSingle)
 	baseHandler := handlers.NewHandler(nodeManager)
 
 	// Setup routes based on fstrings
@@ -72,6 +81,6 @@ func main() {
 	// to disable windows firewall warning -- remove in prod please
 	app.Listen(fmt.Sprintf("127.0.0.1:%d", *port))
 	// } else {
-	// 	app.Listen(fmt.Sprintf(":%d", *port))
+	// app.Listen(fmt.Sprintf(":%d", *port))
 	// }
 }

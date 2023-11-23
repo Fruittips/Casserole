@@ -53,7 +53,7 @@ type NodeManager struct {
 	sysConfig *sysConfig
 }
 
-func NewNodeManager(port int) *NodeManager {
+func NewNodeManager(port int, isSingleNode bool) *NodeManager {
 	// Load filepaths
 	configPath, err := filepath.Abs(CONFIG_PATH)
 	if err != nil {
@@ -69,7 +69,7 @@ func NewNodeManager(port int) *NodeManager {
 	}
 
 	// Identify ID of this node, generate nodeList for cht, and generate node map
-	sysConfig, err := loadConfig(configPath)
+	sysConfig, err := loadConfig(configPath, isSingleNode)
 	if err != nil {
 		log.Fatalf("Error loading config: %v", err)
 	}
