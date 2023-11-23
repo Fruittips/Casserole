@@ -3,13 +3,15 @@ import subprocess
 import threading
 import requests
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Dict, Any
 from dataclasses import dataclass
 from time import sleep, time
 from queue import Queue, Empty
 
 ENCODING = "utf-8"
 LOG_DIR  = Path("./tests/logs")
+START_TIMEOUT = 30 # timeout if node fails to start after this number of seconds
+# note: based on testing, ~150 should be safe for 100 nodes, ~30 is safe for 10 nodes
 
 ### CLASSES ###
 
@@ -67,7 +69,7 @@ class NodeWatcher:
         proc_out_thread.start()
 
         checkIntv = 1
-        start_attempts = 20
+        start_attempts = START_TIMEOUT
         while not eEv.is_set():
             if not sEv.is_set():
                 # Read line without block
