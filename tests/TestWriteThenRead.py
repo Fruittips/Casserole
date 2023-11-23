@@ -1,36 +1,9 @@
-import requests
 import json
 from random import choice
 from os import chdir
-from typing import Dict, Any, Callable
 from time import time, time_ns
-from test_driver import Config, Node, Runner, get_read_url, get_write_url, get_write_data, getConfigWithNNodes
+from test_driver import Runner, get_write_data, getConfigWithNNodes, write_req, read_req
 
-def read_req(svr_id: str, course_id: str, student_id: str) -> (str, bool):
-    try:
-        resp = requests.get(get_read_url(svr_id, course_id, student_id))
-        if resp.status_code != 200:
-            return f"HTTP Error {resp.status_code}, resp.text", False
-        return resp.text, True
-    except requests.exceptions.Timeout:
-        return f"Timeout", False
-    except requests.exceptions.TooManyRedirects:
-        return f"Too Many Redirects", False
-    except requests.exceptions.RequestException as e:
-        return f"Catastrophic Error {e}", False
-
-def write_req(svr_id: str, course_id: str, data: Dict[str, Any]) -> (str, bool):
-    try:
-        resp = requests.post(get_write_url(svr_id, course_id), data=data)
-        if resp.status_code != 200:
-            return f"HTTP Error {resp.status_code}, resp.text", False
-        return resp.text, True
-    except requests.exceptions.Timeout:
-        return f"Timeout", False
-    except requests.exceptions.TooManyRedirects:
-        return f"Too Many Redirects", False
-    except requests.exceptions.RequestException as e:
-        return f"Catastrophic Error {e}", False
 
 def TestWriteThenRead(runner: Runner) -> bool:
     """ Tests a standard write and read """
@@ -61,7 +34,7 @@ def TestWriteThenRead(runner: Runner) -> bool:
     # Expect data to be the same
     read_dat = json.loads(resp)
     if read_dat["StudentId"] != data["StudentId"] or read_dat["StudentName"] != data["StudentName"]:
-        print(f"2. Error: Data not matching")
+        print("2. Error: Data not matching")
         return False
     return True
 

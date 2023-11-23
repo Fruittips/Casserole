@@ -1,10 +1,12 @@
 import json
 import subprocess
 import threading
+import requests
 from pathlib import Path
 from typing import List, Dict, Any
 from dataclasses import dataclass
 from time import sleep
+from queue import Queue, Empty
 
 ENCODING = "utf-8"
 
@@ -42,29 +44,56 @@ class NodeWatcher:
 
     @staticmethod
     def thread_fn(node_id, sEv, eEv):
+        str_to_detect = b'\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x98' #b"initialised"
+        output_queue = Queue()
         proc = subprocess.Popen(["go", "run", ".", f"-port={node_id}"],
-                                bufsize=1,
-                                text=True,
+                                # bufsize=1,
+                                # text=True,
                                 stdin=None,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT
                                 )
+        proc_out_thread = threading.Thread(target=NodeWatcher.output_queue_push, args=(proc.stdout, output_queue))
+        proc_out_thread.daemon = True
+        proc_out_thread.start()
 
         checkIntv = 5
         while not eEv.is_set():
-            timer = threading.Timer(checkIntv, eEv.set)
-            timer.start()
-            try:
-                out = proc.stdout.readline()
-                if "initialised" in out:
+            if not sEv.is_set():
+                # Read line without block
+                line = b""
+                try:
+                    line = output_queue.get_nowait()
+                except Empty:
+                    continue
+                
+                if str_to_detect in line:
+                    print(f"Node {node_id} started.")
                     sEv.set()
-            except Exception:
-                break
-            timer.cancel()
+                    checkIntv = 1
+                continue
             
+            line = b""
+            try:
+                line = output_queue.get_nowait()
+            except Empty:
+                pass
+
+            if len(line) > 0:
+                print(f"N{node_id}: " + line.decode(encoding=ENCODING, errors='ignore').strip())
+            
+            sleep(checkIntv)
+
         # End of loop
-        print(f"Node {node_id}: Killed.")
         proc.kill()
+        proc.wait()
+        print(f"Node {node_id}: Killed.")
+
+    @staticmethod
+    def output_queue_push(out, queue: Queue):
+        for line in iter(out.readline, ""):
+            queue.put(line)
+        out.close()
 
     def exit(self):
         self.exitEvent.set()
@@ -109,6 +138,7 @@ class Runner:
             print(f"Node {node_id}: Initialised.")
             
     def exit(self):
+        print("RUNNER EXIT CALLED")
         for node_id in self.watchers:
             self.watchers[node_id].exit()
 
@@ -150,3 +180,29 @@ def getConfigWithNNodes(n: int, consistencyLevel="QUORUM", gracePeriod=10, timeo
     for node_id in range(START_NODE_ID, START_NODE_ID + n):
         nodesDict[str(node_id)] = Node(node_id, False)
     return Config(consistencyLevel, gracePeriod, timeout, rf, nodesDict)
+
+def read_req(svr_id: str, course_id: str, student_id: str) -> (str, bool):
+    try:
+        resp = requests.get(get_read_url(svr_id, course_id, student_id))
+        if resp.status_code != 200:
+            return f"HTTP Error {resp.status_code}, resp.text", False
+        return resp.text, True
+    except requests.exceptions.Timeout:
+        return "Timeout", False
+    except requests.exceptions.TooManyRedirects:
+        return "Too Many Redirects", False
+    except requests.exceptions.RequestException as e:
+        return f"Catastrophic Error {e}", False
+
+def write_req(svr_id: str, course_id: str, data: Dict[str, Any]) -> (str, bool):
+    try:
+        resp = requests.post(get_write_url(svr_id, course_id), data=data)
+        if resp.status_code != 200:
+            return f"HTTP Error {resp.status_code}, resp.text", False
+        return resp.text, True
+    except requests.exceptions.Timeout:
+        return "Timeout", False
+    except requests.exceptions.TooManyRedirects:
+        return "Too Many Redirects", False
+    except requests.exceptions.RequestException as e:
+        return f"Catastrophic Error {e}", False
