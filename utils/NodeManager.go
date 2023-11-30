@@ -138,7 +138,7 @@ func NewNodeManager(port int, isSingleNode bool) *NodeManager {
 		panic("RF must be greater than or equal to the quorum")
 	}
 	if len(sysConfig.Nodes) < quorum {
-		panic("Consistency level ONE is only valid for single-node clusters")
+		panic("Number of nodes must be greater than or equal to the quorum")
 	}
 
 	return &NodeManager{
