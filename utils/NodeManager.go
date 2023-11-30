@@ -109,9 +109,41 @@ func NewNodeManager(port int, isSingleNode bool) *NodeManager {
 		log.Fatalf("Error loading HintedHandoffManager: %v", err)
 	}
 
+	var quorum int
+
+	switch sysConfig.ConsistencyLevel {
+	case "ONE":
+		quorum = 1
+		break
+	case "TWO":
+		quorum = 2
+		break
+	case "THREE":
+		quorum = 3
+		break
+	case "QUORUM":
+		quorum = sysConfig.RF/2 + 1
+		break
+	case "ALL":
+		quorum = sysConfig.RF
+		break
+	default:
+		panic("Invalid consistency level")
+	}
+
+	if sysConfig.RF > len(sysConfig.Nodes) {
+		panic("RF must be less than or equal to the number of nodes")
+	}
+	if sysConfig.RF < quorum {
+		panic("RF must be greater than or equal to the quorum")
+	}
+	if len(sysConfig.Nodes) < quorum {
+		panic("Consistency level ONE is only valid for single-node clusters")
+	}
+
 	return &NodeManager{
 		LocalId:              NodeId(myId),
-		Quorum:               sysConfig.RF/2 + 1,
+		Quorum:               quorum,
 		Nodes:                nodeMap,
 		DatabaseManager:      dbMgr,
 		HintedHandoffManager: hhMgr,
