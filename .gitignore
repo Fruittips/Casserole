@@ -23,5 +23,6 @@ go.work
 
 /dbFiles/*
 /hintedHandoffs/*
+/tests/logs/*
 
 node-*.json
