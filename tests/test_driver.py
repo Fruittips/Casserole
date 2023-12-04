@@ -2,6 +2,7 @@ import json
 import subprocess
 import threading
 import requests
+import os
 from pathlib import Path
 from typing import Dict, Any
 from dataclasses import dataclass
@@ -105,9 +106,13 @@ class NodeWatcher:
             sleep(checkIntv)
 
         # End of loop
-        proc.kill()
-        proc.wait()
-        print(f"Node {node_id}: Killed.")
+        if os.name == "nt":
+            # Windows-specific kill logic because somehow subprocess.kill() only kills one of the processes
+            subprocess.call(['taskkill', '/F', '/T', '/PID', str(proc.pid)], stdout=None)
+        else:
+            proc.kill()
+        returncode = proc.wait()
+        print(f"Node {node_id}: Killed with {returncode}.")
 
         # Close log file
         logFp.close()
@@ -145,14 +150,27 @@ class Runner:
         LOG_DIR.mkdir(parents=True, exist_ok=True)
         
         # Generate config.json file
-        Path("./config.json").write_text(self.config.to_json())
+        configFile = Path("./config.json")
+        configFile.unlink(missing_ok=True)
+        configFile.touch()
+        configFile.write_text(self.config.to_json())
         print("Runner: Generated config.json")
 
         # Generate new db file and hh file
+        Path("./dbFiles").mkdir(exist_ok=True)
+        Path("./hintedHandoffs").mkdir(exist_ok=True)
         for node_id in self.config.ring:
-            Path(f"./dbFiles/node-{node_id}.json").write_text(self.gen_empty_db_json())
-            Path(f"./hintedHandoffs/node-{node_id}.json").write_text("{}")
+            dbFile = Path(f"./dbFiles/node-{node_id}.json")
+            hhFile = Path(f"./hintedHandoffs/node-{node_id}.json")
+            dbFile.unlink(missing_ok=True)
+            hhFile.unlink(missing_ok=True)
+            dbFile.touch()
+            hhFile.touch()
+            dbFile.write_text(self.gen_empty_db_json())
+            hhFile.write_text("{}")
+        return self.start()
 
+    def start(self) -> bool:
         # Initialise nodes
         for node_id in self.config.ring:
             self.watchers[node_id] = NodeWatcher(node_id, LOG_DIR)
@@ -195,6 +213,12 @@ def get_read_url(node_id: str, course_id: str, student_id: str) -> str:
 
 def get_write_url(node_id: str, course_id: str) -> str:
     return f"{URL}:{node_id}/write/course/{course_id}"
+
+def get_kill_url(node_id: str) -> str:
+    return f"{URL}:{node_id}/internal/kill"
+
+def get_revive_url(node_id: str) -> str:
+    return f"{URL}:{node_id}/internal/revive"
 
 def get_write_data(student_id: str, student_name: str, created_at: int, deleted_at: int) -> Dict[str, Any]:
     if deleted_at == -1:
@@ -243,3 +267,29 @@ def write_req(svr_id: str, course_id: str, data: Dict[str, Any]) -> (str, bool):
         return "Too Many Redirects", False
     except requests.exceptions.RequestException as e:
         return f"Catastrophic Error {e}", False
+
+def kill_req(svr_id: str) -> bool:
+    try:
+        resp = requests.get(get_kill_url(svr_id))
+        if resp.status_code != 200:
+            return False
+        return True
+    except requests.exceptions.Timeout:
+        return False
+    except requests.exceptions.TooManyRedirects:
+        return False
+    except requests.exceptions.RequestException:
+        return False
+
+def revive_req(svr_id: str) -> bool:
+    try:
+        resp = requests.get(get_revive_url(svr_id))
+        if resp.status_code != 200:
+            return False
+        return True
+    except requests.exceptions.Timeout:
+        return False
+    except requests.exceptions.TooManyRedirects:
+        return False
+    except requests.exceptions.RequestException:
+        return False
