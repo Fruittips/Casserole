@@ -47,7 +47,13 @@
                 },
                 body: JSON.stringify(data)
             }).then(response => {
+                if (response.status === 500) {
+                    window.alert("Error");
+                    return;
+                }
                 window.alert("Success");
+            }).catch(error => {
+                window.alert("Error");
             });
         }
 
