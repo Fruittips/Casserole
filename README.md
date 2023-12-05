@@ -12,7 +12,7 @@ This is important for situations that cannot afford to have their databases go o
 
 ## Usage
 
-To initialise the system, you need a `config.json` file to define the configuration Casserole will use, and the necessary database and hinted handoff files for each node.
+To initialise the system, you need a `config.json` file to define the configuration Casserole will use, and the necessary database and hinted handoff files for each node. The dashboaard html will also be updated to reflect the total number of nodes configured.
 
 This can be automatically generated with the following Python script:
 ```shell
