@@ -16,6 +16,7 @@ First, load `frontend/casseroleChef.html` into your browser
 then run:
 ```
 single node: go run . -port=3000 -single=true
+  --- OR ---
 multi node: bash run.sh
 ```
 
