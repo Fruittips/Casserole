@@ -3,7 +3,7 @@
 # This util script was generated using ChatGPT
 
 # Array of port numbers
-ports=(3000 3001 3002 3003 3004)
+ports=(3000 3001 3002 3003)
 
 # Ensure the directories exist, if not create them
 mkdir -p ./dbFiles
