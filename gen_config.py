@@ -60,9 +60,75 @@ def gen_system(n: int = 5, consistencyLevel:str="QUORUM", gracePeriod=100, timeo
         }))
         hhFile.write_text("{}")
 
+    __generate_dashboard(config)
+    
     print(f"Generated system with {n} nodes, RF={rf}, consistency level {consistencyLevel}.")
     return config
 
+def __generate_dashboard(config):
+    html_template_builder = ""
+    array_str = "["
+    base_template="""
+<div id="nodePORT_PLACEHOLDER" class="node bg-white shadow-md p-4 rounded w-1/3 min-w-xl w-full border-gray-300">
+            <h3 class="text-2xl font-bold mb-6">Node PORT_PLACEHOLDER</h3>
+            <div class="data-section mb-4">
+                <strong class="block text-lg pb-1">Node Data:</strong>
+                <p id="node-PORT_PLACEHOLDER-data">Status: Awaiting data...</p>
+            </div>
+            <div class="data-section mb-4">
+                <strong class="block text-lg pb-1">DB Data:</strong>
+                <p id="node-PORT_PLACEHOLDER-db-data">Status: Awaiting data...</p>
+            </div>
+            <div class="data-section mb-4">
+                <strong class="block text-lg pb-1">HH Data:</strong>
+                <p id="node-PORT_PLACEHOLDER-hh-data">Status: Awaiting data...</p>
+            </div>
+
+            <div class="w-full border-b border-gray-500 my-4"></div>
+
+            <form onsubmit="postRequest(PORT_PLACEHOLDER); return false;"
+                class="mb-8 border border-gray-300 rounded p-4 bg-gray-100">
+                <label class="block mb-2">Course ID:
+                    <input type="text" id="nodePORT_PLACEHOLDER-course-id" class="p-2 border rounded border-gray-300">
+                </label>
+                <label class="block mb-2">Student Name:
+                    <input type="text" id="nodePORT_PLACEHOLDER-student-name" class="p-2 border rounded border-gray-300">
+                </label>
+                <label class="block mb-2">Student Number:
+                    <input type="text" id="nodePORT_PLACEHOLDER-student-id" class="p-2 border rounded border-gray-300">
+                </label>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    POST Data
+                </button>
+            </form>
+
+            <form onsubmit="getRequest(PORT_PLACEHOLDER); return false;" class="border border-gray-300 rounded p-4 bg-gray-100">
+                <label class="block mb-2">Course ID: <input type="text" id="nodePORT_PLACEHOLDER-course-id-get"
+                        class="p-2 border rounded border-gray-300"></label>
+                <label class="block mb-2">Student ID: <input type="text" id="nodePORT_PLACEHOLDER-student-id-get"
+                        class="p-2 border rounded border-gray-300"></label>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    GET Data
+                </button>
+            </form>
+
+            <button onclick="kill(PORT_PLACEHOLDER)"
+                class="mt-8 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700">KILL</button>
+            <button onclick="revive(PORT_PLACEHOLDER)"
+                class="mt-8 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700">REVIVE</button>
+        </div>
+"""
+    for node_id in config.ring:
+        port_html = base_template.replace("PORT_PLACEHOLDER", str(node_id))
+        html_template_builder += port_html + "\n"
+        array_str += f"{str(node_id)},"
+    array_str += "]"
+    with open("./frontend/base.html", 'r') as file:
+        file_contents = file.read()
+        file_contents = file_contents.replace("<!-- ===REPLACE NODE DASHBOARD=== -->", html_template_builder)
+        file_contents = file_contents.replace("// ===REPLACE PORTS ARRAY===", f"const ports = {array_str};")
+        with open("./frontend/casseroleChef.html", 'w') as file:
+            file.write(file_contents)
     
 if __name__ == "__main__":
     import argparse
