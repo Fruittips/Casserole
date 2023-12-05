@@ -10,19 +10,35 @@ Therefore, our iteration of Cassandra, aptly dubbed "Casserole", seeks to addres
 
 This is important for situations that cannot afford to have their databases go offline while being able to serve high read/write throughput. Availability is guaranteed through replication and the fact that any node can be the coordinator node. With no single point of failure, there will be no downtime. Partition Tolerance is assured through consistent hashing, via the distribution of data across the cluster ring that safeguards against node failures, while maintaining data accessibility. To assure eventual consistency, Casserole by default adopts a Quorum consistency level and comes built in with read repairs, hinted handoffs and full repairs.
 
-## How to run webpage
-First, load `frontend/casseroleChef.html` into your browser
+## Usage
 
-then run:
-```
-single node: go run . -port=3000 -single=true
-  --- OR ---
-multi node: bash run.sh
+To initialise the system, you need a `config.json` file to define the configuration Casserole will use, and the necessary database and hinted handoff files for each node.
+
+This can be automatically generated with the following Python script:
+```shell
+gen_config.py [-h] [-n NODECOUNT] [-c {ONE,TWO,THREE,QUORUM,ALL}] [-t TIMEOUT] [-r RF]
 ```
 
-## To run performance test
-Performance test is in `performanceTest` folder more information on performance test that we have already ran can be found in `PERFORMANCE.md`
-*Note: More info in the [PERFORMANCE.md](./PERFORMANCE.md)* 
+Each node can be individually run with:
+```shell
+go run . -port=NODE_ID
+```
+
+### Running the Entire System
+
+Alternatively, you can generate the system **and** run the system together with the following Python script:
+```shell
+run_system.py [-h] [-n NODECOUNT] [-c {ONE,TWO,THREE,QUORUM,ALL}] [-t TIMEOUT] [-r RF]
+```
+
+
+### Running the Webpage
+We provide a local frontend webpage to interact with the system. Simply open `frontend/casseroleChef.html`.
+
+## Testing
+
+### Performance Tests
+Performance tests are in the `performanceTest` folder. Further documentation can be found in [PERFORMANCE.md](./PERFORMANCE.md).
 
 ```
 cd performanceTest
@@ -30,8 +46,8 @@ go test -ports=3000
 go test -ports=3000,3001,3002,3003,3004
 ```
 
-## To run system tests:
-More information on the system test can be found in the `tests/README.md` folder
+### System Tests
+System tests are conducted in Python with a test driver similar to the auto-run script above. More information can be found in [tests/README.md](./tests/README.md).
 ```
 cd tests
 pip install -r requirements.txt
@@ -41,11 +57,13 @@ TestMultiWriteOfDiffData.py
 TestMultiWriteToDiffNodes.py
 ```
 
-## External dependencies
-- Murmur3 hashing algorithm: (https://github.com/spaolacci/murmur3)
-- HTTP server framework: (https://github.com/gofiber/fiber)
+## Implementation Notes
 
-## Helper Functions:
+### External dependencies
+- Murmur3 Hashing Algorithm: (https://github.com/spaolacci/murmur3)
+- HTTP Server Framework: (https://github.com/gofiber/fiber)
+
+### Helper Functions
 Located at `utils`, unless stated otherwise.
 
 ### Database Manager

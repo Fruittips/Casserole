@@ -28,5 +28,6 @@ __pycache__/
 /dbFiles/*
 /hintedHandoffs/*
 /tests/logs/*
+/node_logs/*
 
 node-*.json
