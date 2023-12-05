@@ -37,8 +37,8 @@ TestMultiWriteToDiffNodes.py
 ```
 
 ## External dependencies
-Murmur3 hashing algorithm: (https://github.com/spaolacci/murmur3)
-HTTP server framework: (https://github.com/gofiber/fiber)
+- Murmur3 hashing algorithm: (https://github.com/spaolacci/murmur3)
+- HTTP server framework: (https://github.com/gofiber/fiber)
 
 ## Helper Functions:
 ### Database Manager
