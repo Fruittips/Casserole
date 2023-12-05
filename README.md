@@ -20,7 +20,8 @@ multi node: bash run.sh
 ```
 
 ## To run performance test
-Performance test is in `performanceTest` folder more information on performance test that we have already ran can be found in `PERORMANCE.md`
+Performance test is in `performanceTest` folder more information on performance test that we have already ran can be found in `PERFORMANCE.md`
+*Note: More info in the [PERFORMANCE.md](./PERFORMANCE.md)* 
 
 ```
 cd performanceTest
@@ -104,4 +105,6 @@ Hinted Handoff has 3 functions:
 To determine which node should be used to store a given key, we use a consistent hash table (CHT), with the `murmur3` hash. In our implementation, we utilised a binary search tree for faster computation.
 
 The key function of the CHT in relation to Casserole is the retrieval of the node ID to store a given key. Since every node has the node ID of every other node in Casserole and uses the same seed for `murmur3`, this allows a predetermined consensus on which nodes should be used to store a given key, and every node can independently identify which node to forward a request to.
+
+*Note: More info in the [./utils/cht/README.md](./utils/cht/README.md)*
 
