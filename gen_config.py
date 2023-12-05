@@ -127,8 +127,10 @@ def __generate_dashboard(config):
         file_contents = file.read()
         file_contents = file_contents.replace("<!-- ===REPLACE NODE DASHBOARD=== -->", html_template_builder)
         file_contents = file_contents.replace("// ===REPLACE PORTS ARRAY===", f"const ports = {array_str};")
-        with open("./frontend/casseroleChef.html", 'w') as file:
-            file.write(file_contents)
+        with open("./frontend/casseroleChef.html", 'w') as htmlfile:
+            htmlfile.write(file_contents)
+            htmlfile.close()
+        file.close()
     
 if __name__ == "__main__":
     import argparse
