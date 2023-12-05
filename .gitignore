@@ -21,6 +21,10 @@
 go.work
 .DS_Store
 
+# Python
+__pycache__/
+
+# Casserole
 /dbFiles/*
 /hintedHandoffs/*
 /tests/logs/*
