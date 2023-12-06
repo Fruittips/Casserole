@@ -88,6 +88,8 @@ class NodeWatcher:
         if os.name == "nt":
             # Windows-specific kill logic because somehow subprocess.kill() only kills one of the processes
             subprocess.call(['taskkill', '/F', '/T', '/PID', str(proc.pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        elif os.name == "posix":
+            subprocess.call(['kill', '-9', str(proc.pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         else:
             proc.kill()
         proc.wait()
