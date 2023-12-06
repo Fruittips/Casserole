@@ -31,3 +31,4 @@ __pycache__/
 /node_logs/*
 
 node-*.json
+.python-version
