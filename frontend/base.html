@@ -86,22 +86,16 @@
                 });
         }
 
-
-        function establishSSE(port) {
-            const evtSource = new EventSource(`http://127.0.0.1:${port}/sse`);
-            evtSource.onmessage = function (event) {
-                const data = JSON.parse(event.data);
-                document.getElementById(`node-${port}-data`).innerHTML = data.node.replace(/\n/g, '<br>');
-                document.getElementById(`node-${port}-db-data`).innerHTML = data.db.replace(/\n/g, '<br>');
-                document.getElementById(`node-${port}-hh-data`).innerHTML = data.hh.replace(/\n/g, '<br>');
-            }
-        }
-
         function getState(port) {
             fetch(`http://127.0.0.1:${port}/state`)
                 .then(async (res) => {
                     const data = await res.json();
-                    console.log(data)
+                    const isDead = data.node.includes('DEAD');
+                    if (isDead) {
+                        document.getElementById(`node${port}`).style.border = '3px solid red';
+                    } else {
+                        document.getElementById(`node${port}`).style.border = '3px solid green';
+                    }
                     document.getElementById(`node-${port}-data`).innerHTML = data.node.replace(/\n/g, '<br>');
                     document.getElementById(`node-${port}-db-data`).innerHTML = data.db.replace(/\n/g, '<br>');
                     document.getElementById(`node-${port}-hh-data`).innerHTML = data.hh.replace(/\n/g, '<br>');
