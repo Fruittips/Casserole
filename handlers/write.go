@@ -61,11 +61,6 @@ func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
 	// Check number of acks
 	ackCount := len(responses)
 
-	// If failed to hit QUORUM
-	if ackCount < h.NodeManager.Quorum {
-		return c.Status(500).SendString("Failed to hit QUORUM")
-	}
-
 	// If hit QUORUM:
 	// Either all nodes responded, or some nodes responded
 	for failedNodeId := range failures {
@@ -75,6 +70,12 @@ func (h *BaseHandler) WriteHandler(c *fiber.Ctx) error {
 			CourseId: courseId,
 		})
 	}
+
+	// If failed to hit QUORUM
+	if ackCount < h.NodeManager.Quorum {
+		return c.Status(500).SendString("Failed to hit QUORUM")
+	}
+
 	return c.Status(200).SendString("Successfully written to DB")
 
 }
