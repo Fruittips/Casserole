@@ -32,9 +32,11 @@ class ConfigEncoder(json.JSONEncoder):
 
 def gen_system(n: int = 5, consistencyLevel:str="QUORUM", gracePeriod=100, timeout=10, rf=3) -> Config:
     # Generate config
+    bash_script_builder = []
     nodesDict = {}
     for node_id in range(START_NODE_ID, START_NODE_ID + n):
         nodesDict[str(node_id)] = Node(node_id, False)
+        bash_script_builder.append(f"go run . -port={node_id}")
     config = Config(consistencyLevel, gracePeriod, timeout, rf, nodesDict)
     
     # Generate config.json file
@@ -61,6 +63,12 @@ def gen_system(n: int = 5, consistencyLevel:str="QUORUM", gracePeriod=100, timeo
         hhFile.write_text("{}")
 
     __generate_dashboard(config)
+
+    # bash_script_builder
+    with open("./run.sh", 'w') as bash_runner:
+        bash_script_builder = " & ".join(bash_script_builder)
+        bash_runner.write(bash_script_builder)
+        bash_runner.close()
     
     print(f"Generated system with {n} nodes, RF={rf}, consistency level {consistencyLevel}.")
     return config
